@@ -1,887 +1,1153 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASICS GEL-NIMBUS // ANATOMY EXPLORER</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            overflow: hidden;
-            background: #0a0a0f;
-            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
-            color: #c8c8d8;
-            -webkit-font-smoothing: antialiased;
-        }
-        #viewport {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0; display: block;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASICS Vietnam - Giay Chay Bo Chinh Hang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Roboto',Arial,Helvetica,sans-serif;font-size:14px;color:#333;background:#f5f5f5;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+button{cursor:pointer;font-family:inherit}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+input,select{font-family:inherit}
 
-        /* ===== LOADING SCREEN ===== */
-        #loading {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9999; background: #0a0a0f;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.8s ease;
-        }
-        #loading.hidden { opacity: 0; pointer-events: none; }
-        #loading::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
-            pointer-events: none;
-        }
-        #loading .brand { font-family: 'Orbitron', monospace; font-size: 2.2rem; font-weight: 700;
-            color: #00d4ff; letter-spacing: 10px;
-            text-shadow: 0 0 20px rgba(0,212,255,0.4), 0 0 60px rgba(0,212,255,0.1);
-        }
-        #loading .tagline { font-family: 'Rajdhani', sans-serif; font-size: 0.8rem; letter-spacing: 8px;
-            color: #555570; margin-top: 8px; text-transform: uppercase;
-        }
-        .load-bar { width: 220px; height: 2px; background: #151520; margin-top: 30px; border-radius: 1px; overflow: hidden; }
-        .load-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #00d4ff, #7c3aed); transition: width 0.6s ease; }
-        .load-status { font-size: 0.7rem; letter-spacing: 4px; color: #444460; margin-top: 14px;
-            animation: pulse 1.5s ease infinite;
-        }
-        @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+:root{
+  --primary:#d0021b;
+  --primary-dark:#b30018;
+  --secondary:#1a3c6e;
+  --bg:#f5f5f5;
+  --card:#fff;
+  --text:#333;
+  --text2:#666;
+  --text3:#999;
+  --border:#e5e5e5;
+  --border-light:#f0f0f0;
+  --topbar:#2d2d2d;
+  --star:#f5a623;
+  --link:#0066cc;
+  --radius:4px;
+  --shadow:0 1px 4px rgba(0,0,0,0.08);
+  --transition:0.25s ease;
+}
 
-        /* ===== HEADER ===== */
-        #header {
-            position: fixed; top: 0; left: 0; width: 100%; height: 56px;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 28px; z-index: 100;
-            background: linear-gradient(to bottom, rgba(10,10,15,0.85) 0%, transparent 100%);
-        }
-        .hdr-brand .hdr-title {
-            font-family: 'Orbitron', monospace; font-size: 0.95rem; font-weight: 600;
-            letter-spacing: 4px; color: #00d4ff;
-            text-shadow: 0 0 12px rgba(0,212,255,0.25);
-        }
-        .hdr-brand .hdr-sub {
-            font-size: 0.65rem; letter-spacing: 5px; color: #555570; margin-top: 1px;
-        }
-        .controls { display: flex; gap: 8px; }
-        .btn {
-            font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; font-weight: 600;
-            letter-spacing: 2px; text-transform: uppercase;
-            padding: 5px 14px; background: transparent;
-            border: 1px solid rgba(0,212,255,0.2); color: #778; cursor: pointer;
-            transition: all 0.3s ease; outline: none;
-        }
-        .btn:hover { border-color: rgba(0,212,255,0.6); color: #00d4ff;
-            background: rgba(0,212,255,0.05); box-shadow: 0 0 12px rgba(0,212,255,0.1);
-        }
-        .btn.active { border-color: #00d4ff; color: #00d4ff;
-            background: rgba(0,212,255,0.08);
-            box-shadow: 0 0 15px rgba(0,212,255,0.12), inset 0 0 15px rgba(0,212,255,0.03);
-        }
+/* === TOP BAR === */
+.topbar{background:var(--topbar);color:rgba(255,255,255,0.85);font-size:12px;height:36px;display:flex;align-items:center}
+.topbar .container{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:1200px;margin:0 auto;padding:0 15px}
+.topbar-left{display:flex;gap:20px;align-items:center}
+.topbar-left a{color:rgba(255,255,255,0.85);transition:var(--transition)}
+.topbar-left a:hover{color:#fff}
+.topbar-left span{color:rgba(255,255,255,0.4)}
+.topbar-right{display:flex;gap:14px;align-items:center}
+.topbar-right a{color:rgba(255,255,255,0.7);font-size:14px;transition:var(--transition)}
+.topbar-right a:hover{color:#fff}
 
-        /* ===== INFO PANEL ===== */
-        #info-panel {
-            position: fixed; left: -370px; top: 76px; width: 330px;
-            background: rgba(8,8,14,0.92); border: 1px solid rgba(0,212,255,0.1);
-            padding: 24px 22px; z-index: 100;
-            transition: left 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        }
-        #info-panel.visible { left: 22px; }
-        #info-panel::before {
-            content: ''; position: absolute; top: -1px; left: -1px;
-            width: 18px; height: 18px;
-            border-top: 2px solid #00d4ff; border-left: 2px solid #00d4ff;
-        }
-        #info-panel::after {
-            content: ''; position: absolute; bottom: -1px; right: -1px;
-            width: 18px; height: 18px;
-            border-bottom: 2px solid #00d4ff; border-right: 2px solid #00d4ff;
-        }
-        .panel-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .panel-num { font-family: 'Orbitron', monospace; font-size: 0.65rem; color: #7c3aed;
-            letter-spacing: 3px; opacity: 0.8;
-        }
-        .panel-close { background: none; border: none; color: #555; font-size: 1rem;
-            cursor: pointer; padding: 2px 6px; transition: color 0.3s;
-        }
-        .panel-close:hover { color: #00d4ff; }
-        .p-name { font-family: 'Orbitron', monospace; font-size: 0.9rem; font-weight: 600;
-            color: #00d4ff; letter-spacing: 2px; line-height: 1.3;
-            text-shadow: 0 0 8px rgba(0,212,255,0.2);
-        }
-        .p-sub { font-size: 0.78rem; color: #7c3aed; letter-spacing: 1.5px; margin-top: 3px; font-weight: 500; }
-        .p-line { width: 100%; height: 1px; background: linear-gradient(90deg, rgba(0,212,255,0.2), transparent);
-            margin: 14px 0;
-        }
-        .p-desc { font-size: 0.82rem; line-height: 1.55; color: #8888a0; }
-        .p-specs { list-style: none; margin-top: 14px; }
-        .p-specs li {
-            font-size: 0.78rem; color: #9999b0; padding: 3px 0 3px 16px;
-            position: relative; letter-spacing: 0.5px;
-        }
-        .p-specs li::before { content: '▸'; position: absolute; left: 0; color: #00d4ff; font-size: 0.7rem; }
+/* === HEADER === */
+.header{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.header .container{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;padding:10px 15px;gap:20px}
+.logo{font-size:28px;font-weight:900;color:var(--secondary);letter-spacing:-0.5px;white-space:nowrap;flex-shrink:0}
+.logo span{color:var(--primary)}
+.header-search{flex:1;max-width:520px;display:flex;position:relative}
+.header-search input{width:100%;height:40px;border:2px solid var(--primary);border-right:none;border-radius:var(--radius) 0 0 var(--radius);padding:0 14px;font-size:13px;outline:none;color:var(--text)}
+.header-search input::placeholder{color:var(--text3)}
+.header-search button{height:40px;width:48px;background:var(--primary);border:2px solid var(--primary);border-radius:0 var(--radius) var(--radius) 0;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;transition:var(--transition);flex-shrink:0}
+.header-search button:hover{background:var(--primary-dark)}
+.header-right{display:flex;align-items:center;gap:18px;flex-shrink:0}
+.header-hotline{display:flex;align-items:center;gap:8px;color:var(--primary);font-weight:700;font-size:15px}
+.header-hotline svg{flex-shrink:0}
+.header-icon{position:relative;display:flex;align-items:center;gap:6px;color:var(--text2);font-size:13px;transition:var(--transition);background:none;border:none;padding:6px}
+.header-icon:hover{color:var(--primary)}
+.header-icon svg{width:22px;height:22px}
+.cart-count{position:absolute;top:0;right:-4px;min-width:18px;height:18px;border-radius:9px;background:var(--primary);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;transform:scale(0);transition:var(--transition)}
+.cart-count.show{transform:scale(1)}
 
-        /* ===== COMPONENT SELECTOR ===== */
-        #comp-selector {
-            position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 6px; z-index: 100;
-        }
-        .comp-card {
-            width: 88px; padding: 10px 6px 8px;
-            background: rgba(8,8,14,0.65); border: 1px solid rgba(0,212,255,0.08);
-            cursor: pointer; text-align: center; transition: all 0.3s ease;
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-        }
-        .comp-card:hover { border-color: rgba(0,212,255,0.35); background: rgba(0,212,255,0.04); }
-        .comp-card.active { border-color: #00d4ff; background: rgba(0,212,255,0.08);
-            box-shadow: 0 0 12px rgba(0,212,255,0.1);
-        }
-        .cc-num { font-family: 'Orbitron', monospace; font-size: 0.6rem; color: #7c3aed; letter-spacing: 2px; }
-        .cc-name { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase;
-            color: #666680; margin-top: 4px; font-weight: 600;
-        }
-        .comp-card.active .cc-name { color: #00d4ff; }
+/* === MAIN NAV === */
+.main-nav{background:var(--primary);position:sticky;top:62px;z-index:99}
+.main-nav .container{max-width:1200px;margin:0 auto;padding:0 15px;display:flex;align-items:center}
+.main-nav a{display:flex;align-items:center;gap:5px;color:#fff;font-size:12px;font-weight:500;padding:7px 14px;text-transform:uppercase;letter-spacing:0.3px;transition:var(--transition);white-space:nowrap}
+.main-nav a:hover,.main-nav a.active{background:rgba(0,0,0,0.15)}
+.main-nav a svg{width:16px;height:16px;flex-shrink:0}
+.hamburger{display:none;background:none;border:none;color:#fff;padding:10px 16px;font-size:20px}
 
-        /* ===== 3D LABELS ===== */
-        .lbl {
-            position: fixed; pointer-events: none; z-index: 50;
-            transition: opacity 0.35s ease;
-            transform: translate(0, -50%);
-        }
-        .lbl-inner {
-            font-family: 'Orbitron', monospace; font-size: 0.55rem; font-weight: 500;
-            letter-spacing: 2.5px; color: #00d4ff;
-            background: rgba(8,8,14,0.75); padding: 3px 10px;
-            border: 1px solid rgba(0,212,255,0.25);
-            white-space: nowrap;
-            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-        }
+/* === BREADCRUMB === */
+.breadcrumb{background:#fff;border-bottom:1px solid var(--border);padding:10px 0;font-size:13px;color:var(--text3)}
+.breadcrumb .container{max-width:1200px;margin:0 auto;padding:0 15px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.breadcrumb a{color:var(--link);transition:var(--transition)}
+.breadcrumb a:hover{color:var(--primary)}
+.breadcrumb span.sep{color:#ccc}
+.breadcrumb span.current{color:var(--text)}
 
-        /* ===== SVG ANNOTATIONS ===== */
-        #anno-svg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 45; overflow: visible;
-        }
+/* === HERO BANNER === */
+.hero-banner{background:linear-gradient(135deg,#0a1628 0%,#1a3c6e 50%,#0d2240 100%);overflow:hidden}
+.hero-banner .container{max-width:1200px;margin:0 auto;padding:0 15px;display:grid;grid-template-columns:1fr 1.2fr;min-height:280px;align-items:center}
+.hero-text{padding:28px 24px 28px 0;color:#fff}
+.hero-tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--primary);border:1px solid rgba(208,2,27,0.4);padding:3px 12px;border-radius:20px;margin-bottom:10px}
+.hero-text h1{font-size:26px;font-weight:900;line-height:1.15;margin-bottom:10px;text-transform:uppercase;letter-spacing:-0.5px}
+.hero-text h1 span{color:var(--primary)}
+.hero-text p{font-size:13px;color:rgba(255,255,255,0.65);line-height:1.6;margin-bottom:16px;max-width:380px}
+.hero-btns{display:flex;gap:8px;flex-wrap:wrap}
+.hero-btn{display:inline-flex;align-items:center;gap:5px;padding:9px 22px;border-radius:var(--radius);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border:none;transition:var(--transition);cursor:pointer}
+.hero-btn-primary{background:var(--primary);color:#fff}
+.hero-btn-primary:hover{background:var(--primary-dark);box-shadow:0 4px 20px rgba(208,2,27,0.4)}
+.hero-btn-outline{background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff}
+.hero-btn-outline:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.6)}
+.hero-stats{display:flex;gap:24px;margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1)}
+.hero-stat .num{font-size:20px;font-weight:900;color:#fff}
+.hero-stat .lbl{font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.hero-img{position:relative;height:100%;min-height:280px;overflow:hidden}
+.hero-img img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.hero-img::after{content:'';position:absolute;top:0;left:0;width:60px;height:100%;background:linear-gradient(to right,#0d2240,transparent);pointer-events:none}
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            #comp-selector { gap: 4px; }
-            .comp-card { width: 56px; padding: 8px 3px 6px; }
-            .cc-num { font-size: 0.5rem; }
-            .cc-name { font-size: 0.5rem; }
-            #info-panel { width: 280px; }
-            #info-panel.visible { left: 10px; }
-            .controls { gap: 4px; }
-            .btn { padding: 4px 8px; font-size: 0.6rem; letter-spacing: 1px; }
-        }
-        @media (max-width: 480px) {
-            .hdr-brand .hdr-title { font-size: 0.7rem; letter-spacing: 2px; }
-            .hdr-brand .hdr-sub { display: none; }
-        }
-    </style>
+/* === MAIN LAYOUT === */
+.main-content{max-width:1200px;margin:20px auto;padding:0 15px;display:grid;grid-template-columns:230px 1fr;gap:20px}
+
+/* === SIDEBAR === */
+.sidebar{align-self:start;position:sticky;top:110px}
+.filter-box{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.filter-box-header{background:#fafafa;padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.filter-box-header h4{font-size:13px;font-weight:700;text-transform:uppercase;color:var(--text);letter-spacing:0.3px}
+.filter-box-body{padding:10px 14px}
+.filter-check{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:13px;color:var(--text2);transition:var(--transition)}
+.filter-check:hover{color:var(--primary)}
+.filter-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
+.filter-check .count{margin-left:auto;font-size:11px;color:var(--text3);background:#f5f5f5;padding:1px 6px;border-radius:8px}
+.price-options{display:flex;flex-direction:column;gap:2px}
+.price-opt{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:13px;color:var(--text2);transition:var(--transition)}
+.price-opt:hover{color:var(--primary)}
+.price-opt input[type=radio]{accent-color:var(--primary);cursor:pointer}
+.price-opt.active{color:var(--primary);font-weight:500}
+.clear-btn{display:block;text-align:center;padding:8px;font-size:12px;color:var(--primary);font-weight:500;cursor:pointer;transition:var(--transition);border:none;background:none;width:100%}
+.clear-btn:hover{text-decoration:underline}
+
+/* === PRODUCTS AREA === */
+.products-area{}
+.sort-bar{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.sort-bar .result-count{font-size:13px;color:var(--text2)}
+.sort-bar .result-count strong{color:var(--text);font-weight:700}
+.sort-controls{display:flex;align-items:center;gap:10px}
+.sort-controls label{font-size:13px;color:var(--text2);white-space:nowrap}
+.sort-select{height:34px;border:1px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;color:var(--text);background:#fff;outline:none;cursor:pointer;min-width:160px}
+.sort-select:focus{border-color:var(--primary)}
+.view-toggle{display:flex;gap:4px}
+.view-btn{width:34px;height:34px;border:1px solid var(--border);border-radius:var(--radius);background:#fff;color:var(--text3);display:flex;align-items:center;justify-content:center;transition:var(--transition);font-size:14px}
+.view-btn:hover,.view-btn.active{border-color:var(--primary);color:var(--primary);background:rgba(208,2,27,0.04)}
+
+/* === PRODUCT GRID === */
+.products-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.no-results{text-align:center;padding:60px 20px;grid-column:1/-1;background:#fff;border-radius:var(--radius);border:1px solid var(--border)}
+.no-results p{color:var(--text3);font-size:14px}
+
+/* === PRODUCT CARD === */
+.p-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:var(--transition);position:relative;cursor:pointer}
+.p-card:hover{border-color:#ccc;box-shadow:0 4px 16px rgba(0,0,0,0.1);transform:translateY(-2px)}
+.p-card:hover .p-card-actions{opacity:1;transform:translateY(0)}
+.p-card-img{position:relative;aspect-ratio:1/1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:15px;background:#fafafa;border-bottom:1px solid var(--border-light)}
+.p-card-img img{width:88%;height:auto;object-fit:contain;transition:0.4s ease;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.1));max-height:90%}
+.p-card:hover .p-card-img img{transform:scale(1.06) rotate(-2deg)}
+.p-badge{position:absolute;top:8px;left:8px;z-index:2}
+.p-badge-item{display:block;padding:3px 8px;border-radius:3px;font-size:11px;font-weight:700;color:#fff;margin-bottom:4px;letter-spacing:0.3px}
+.p-badge-item.sale{background:var(--primary)}
+.p-badge-item.new{background:#2ecc40}
+.p-badge-item.hot{background:#ff6600}
+.p-card-actions{position:absolute;bottom:0;left:0;width:100%;display:flex;opacity:0;transform:translateY(6px);transition:var(--transition);z-index:3}
+.p-card-actions button{flex:1;padding:8px;border:none;font-size:12px;font-weight:500;transition:var(--transition);text-transform:uppercase;letter-spacing:0.3px}
+.btn-quickview{background:rgba(26,60,110,0.9);color:#fff}
+.btn-quickview:hover{background:var(--secondary)}
+.btn-addcart{background:rgba(208,2,27,0.9);color:#fff}
+.btn-addcart:hover{background:var(--primary-dark)}
+.p-card-info{padding:12px}
+.p-card-name{font-size:13px;font-weight:400;color:var(--text);line-height:1.45;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:38px}
+.p-card-name:hover{color:var(--primary)}
+.p-card-price{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.price-new{font-size:16px;font-weight:700;color:var(--primary)}
+.price-old{font-size:13px;color:var(--text3);text-decoration:line-through}
+.price-pct{font-size:11px;color:#fff;background:var(--primary);padding:2px 6px;border-radius:3px;font-weight:600}
+.p-card-rating{display:flex;align-items:center;gap:4px}
+.stars{color:var(--star);font-size:12px;letter-spacing:1px}
+.review-count{font-size:11px;color:var(--text3)}
+.p-card-colors{display:flex;gap:4px;margin-top:8px}
+.color-dot{width:14px;height:14px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:var(--transition);box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12)}
+.color-dot:hover,.color-dot.active{border-color:var(--primary);transform:scale(1.15)}
+.p-card-tag{font-size:11px;color:var(--text3);margin-top:6px;display:flex;align-items:center;gap:4px}
+.p-card-tag svg{width:12px;height:12px;color:var(--primary)}
+
+/* === PRODUCT MODAL === */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:2000;opacity:0;pointer-events:none;transition:var(--transition)}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.96);width:min(900px,94vw);max-height:90vh;background:#fff;border-radius:8px;z-index:2100;overflow-y:auto;opacity:0;pointer-events:none;transition:0.3s ease;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.modal-close{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;z-index:10;transition:var(--transition);color:var(--text2)}
+.modal-close:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.modal-body{display:grid;grid-template-columns:1fr 1fr;min-height:460px}
+.modal-img{display:flex;align-items:center;justify-content:center;padding:30px;background:#fafafa;border-right:1px solid var(--border-light)}
+.modal-img img{width:88%;max-width:380px;object-fit:contain;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.12));transition:0.4s ease}
+.modal-img svg{width:85%;max-width:340px;filter:drop-shadow(0 8px 20px rgba(0,0,0,0.1));transition:0.4s ease}
+.modal-details{padding:28px;display:flex;flex-direction:column;overflow-y:auto}
+.modal-cat{font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.modal-name{font-size:20px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:8px}
+.modal-rating{display:flex;align-items:center;gap:6px;margin-bottom:14px;font-size:13px}
+.modal-price-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border-light)}
+.modal-price{font-size:22px;font-weight:700;color:var(--primary)}
+.modal-desc{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:18px}
+.option-label{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px;letter-spacing:0.5px}
+.modal-colors{display:flex;gap:6px;margin-bottom:16px}
+.modal-color{width:26px;height:26px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:var(--transition);box-shadow:inset 0 0 0 1px rgba(0,0,0,0.1)}
+.modal-color:hover,.modal-color.sel{border-color:var(--primary);transform:scale(1.1)}
+.size-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:18px}
+.size-btn{padding:7px;border:1px solid var(--border);border-radius:var(--radius);background:#fff;font-size:12px;font-weight:500;color:var(--text2);text-align:center;transition:var(--transition);cursor:pointer}
+.size-btn:hover{border-color:var(--primary);color:var(--primary)}
+.size-btn.sel{background:var(--primary);color:#fff;border-color:var(--primary)}
+.size-btn.out{opacity:0.3;pointer-events:none;text-decoration:line-through}
+.qty-row{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.qty-ctrl{display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.qty-ctrl button{width:32px;height:32px;border:none;background:#fafafa;font-size:14px;transition:var(--transition);display:flex;align-items:center;justify-content:center}
+.qty-ctrl button:hover{background:var(--border)}
+.qty-ctrl span{width:36px;text-align:center;font-weight:600;font-size:13px}
+.modal-add{width:100%;padding:12px;border-radius:var(--radius);border:none;background:var(--primary);color:#fff;font-size:14px;font-weight:700;text-transform:uppercase;transition:var(--transition);letter-spacing:0.5px}
+.modal-add:hover{background:var(--primary-dark);box-shadow:0 4px 16px rgba(208,2,27,0.3)}
+.modal-add:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
+.modal-specs{margin-top:16px;padding-top:14px;border-top:1px solid var(--border-light)}
+.spec-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px}
+.spec-row .spec-k{color:var(--text3)}
+.spec-row .spec-v{color:var(--text);font-weight:500}
+
+/* === CART SIDEBAR === */
+.cart-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:3000;opacity:0;pointer-events:none;transition:var(--transition)}
+.cart-overlay.open{opacity:1;pointer-events:auto}
+.cart-sidebar{position:fixed;top:0;right:-420px;width:min(400px,100vw);height:100%;background:#fff;z-index:3100;transition:0.35s ease;display:flex;flex-direction:column;box-shadow:-4px 0 30px rgba(0,0,0,0.1)}
+.cart-sidebar.open{right:0}
+.cart-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:#fafafa}
+.cart-header h3{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+.cart-close{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:#fff;font-size:16px;transition:var(--transition);display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.cart-close:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.cart-items{flex:1;overflow-y:auto;padding:12px 20px}
+.cart-empty{text-align:center;padding:50px 20px;color:var(--text3)}
+.cart-empty .empty-icon{font-size:40px;margin-bottom:12px;opacity:0.3}
+.cart-item{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-light);position:relative}
+.cart-item-img{width:64px;height:64px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;padding:4px;background:#fafafa;border:1px solid var(--border-light)}
+.cart-item-img img{width:100%;height:100%;object-fit:contain}
+.cart-item-img svg{width:100%;height:auto}
+.cart-item-info{display:flex;flex-direction:column;justify-content:center}
+.cart-item-name{font-weight:500;font-size:13px;color:var(--text);margin-bottom:2px}
+.cart-item-meta{font-size:11px;color:var(--text3);margin-bottom:6px}
+.cart-item-bottom{display:flex;align-items:center;justify-content:space-between}
+.cart-item-price{font-weight:700;font-size:14px;color:var(--primary)}
+.cart-item-qty{display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.cart-item-qty button{width:26px;height:26px;border:none;background:transparent;font-size:13px;transition:var(--transition)}
+.cart-item-qty button:hover{background:#f5f5f5}
+.cart-item-qty span{width:26px;text-align:center;font-size:12px;font-weight:600}
+.cart-remove{position:absolute;top:12px;right:0;width:22px;height:22px;border-radius:50%;border:none;background:transparent;color:var(--text3);font-size:14px;transition:var(--transition);display:flex;align-items:center;justify-content:center}
+.cart-remove:hover{color:var(--primary);background:rgba(208,2,27,0.06)}
+.cart-footer{padding:16px 20px;border-top:1px solid var(--border);background:#fff}
+.cart-summary{margin-bottom:12px}
+.cart-row{display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:var(--text2)}
+.cart-row.total{font-size:15px;font-weight:700;color:var(--primary);padding-top:8px;margin-top:6px;border-top:2px solid var(--primary)}
+.cart-checkout{width:100%;padding:12px;border-radius:var(--radius);border:none;background:var(--primary);color:#fff;font-size:14px;font-weight:700;text-transform:uppercase;transition:var(--transition);letter-spacing:0.5px}
+.cart-checkout:hover{background:var(--primary-dark)}
+
+/* === FEATURES BAR === */
+.features-bar{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.feat-item{display:flex;align-items:center;gap:10px;padding:6px 0}
+.feat-item .feat-icon{width:36px;height:36px;border-radius:50%;background:rgba(208,2,27,0.08);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.feat-item .feat-text h5{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.feat-item .feat-text p{font-size:11px;color:var(--text3);line-height:1.3}
+
+/* === FOOTER === */
+.footer{background:#1a1a2e;color:rgba(255,255,255,0.65);margin-top:30px;padding:0}
+.footer-top{padding:35px 0;border-bottom:1px solid rgba(255,255,255,0.08)}
+.footer-top .container{max-width:1200px;margin:0 auto;padding:0 15px;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:30px}
+.footer h5{font-size:14px;font-weight:700;color:#fff;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.3px}
+.footer-about p{font-size:13px;line-height:1.7;margin-bottom:12px}
+.footer-about .footer-contact{display:flex;flex-direction:column;gap:6px}
+.footer-about .footer-contact span{display:flex;align-items:center;gap:8px;font-size:13px}
+.footer-about .footer-contact span strong{color:var(--primary)}
+.footer ul li{margin-bottom:8px}
+.footer ul a{font-size:13px;color:rgba(255,255,255,0.55);transition:var(--transition)}
+.footer ul a:hover{color:var(--primary);padding-left:4px}
+.footer-newsletter input{width:100%;height:36px;border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius);background:rgba(255,255,255,0.06);padding:0 12px;font-size:13px;color:#fff;outline:none;margin-bottom:8px;transition:var(--transition)}
+.footer-newsletter input::placeholder{color:rgba(255,255,255,0.3)}
+.footer-newsletter input:focus{border-color:var(--primary)}
+.footer-newsletter button{width:100%;height:36px;border:none;border-radius:var(--radius);background:var(--primary);color:#fff;font-size:13px;font-weight:600;transition:var(--transition);text-transform:uppercase;letter-spacing:0.5px}
+.footer-newsletter button:hover{background:var(--primary-dark)}
+.footer-bottom{padding:16px 0;text-align:center}
+.footer-bottom .container{max-width:1200px;margin:0 auto;padding:0 15px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:rgba(255,255,255,0.35)}
+.footer-socials{display:flex;gap:10px}
+.footer-socials a{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:13px;transition:var(--transition);color:rgba(255,255,255,0.5)}
+.footer-socials a:hover{background:var(--primary);border-color:var(--primary);color:#fff}
+
+/* === TOASTS === */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 18px;border-radius:var(--radius);background:var(--secondary);color:#fff;font-size:13px;font-weight:400;box-shadow:0 4px 16px rgba(0,0,0,0.15);transform:translateX(120%);transition:0.3s ease;display:flex;align-items:center;gap:8px;max-width:320px}
+.toast.show{transform:translateX(0)}
+.toast.success{background:#27ae60}
+.toast.error{background:var(--primary)}
+.toast-icon{font-size:15px}
+
+/* === SCROLL TO TOP === */
+.scroll-top{position:fixed;bottom:20px;left:20px;width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;border:none;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.15);opacity:0;pointer-events:none;transition:var(--transition);z-index:99}
+.scroll-top.show{opacity:1;pointer-events:auto}
+.scroll-top:hover{background:var(--primary-dark);transform:translateY(-2px)}
+
+/* === RESPONSIVE === */
+@media(max-width:1024px){
+  .main-content{grid-template-columns:200px 1fr}
+  .products-grid{grid-template-columns:repeat(3,1fr)}
+  .footer-top .container{grid-template-columns:1fr 1fr}
+  .features-bar{grid-template-columns:repeat(2,1fr)}
+  .header-hotline{display:none}
+}
+@media(max-width:768px){
+  .topbar{display:none}
+  .main-nav{top:62px}
+  .main-nav .container{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .main-nav .nav-links{display:flex;white-space:nowrap}
+  .main-nav a{padding:10px 12px;font-size:12px}
+  .hamburger{display:flex}
+  .main-content{grid-template-columns:1fr;gap:12px}
+  .sidebar{position:static;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .filter-box{margin-bottom:0}
+  .products-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .p-card-actions{opacity:1;transform:translateY(0)}
+  .sort-bar{flex-direction:column;align-items:flex-start;gap:8px}
+  .modal-body{grid-template-columns:1fr}
+  .modal-img{height:240px;border-right:none;border-bottom:1px solid var(--border-light)}
+  .size-grid{grid-template-columns:repeat(4,1fr)}
+  .footer-top .container{grid-template-columns:1fr}
+  .footer-bottom .container{flex-direction:column;gap:10px}
+  .features-bar{grid-template-columns:1fr 1fr}
+  .header-search{max-width:none}
+  .logo{font-size:22px}
+  .hero-banner .container{grid-template-columns:1fr;min-height:auto}
+  .hero-text{padding:20px 0;text-align:center}
+  .hero-text h1{font-size:22px}
+  .hero-text p{max-width:none;font-size:12px}
+  .hero-btns{justify-content:center}
+  .hero-stats{justify-content:center}
+  .hero-img{min-height:180px}
+  .hero-img::after{display:none}
+}
+@media(max-width:480px){
+  .products-grid{grid-template-columns:1fr 1fr;gap:6px}
+  .p-card-info{padding:8px}
+  .p-card-name{font-size:12px;min-height:34px}
+  .price-new{font-size:14px}
+  .sidebar{grid-template-columns:1fr}
+  .features-bar{grid-template-columns:1fr}
+  .header .container{gap:10px}
+}
+</style>
 </head>
 <body>
-    <!-- Loading -->
-    <div id="loading">
-        <div class="brand">ASICS</div>
-        <div class="tagline">GEL-NIMBUS // ANATOMY</div>
-        <div class="load-bar"><div class="load-fill" id="load-fill"></div></div>
-        <div class="load-status" id="load-status">INITIALIZING MODULES...</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="container">
+    <div class="topbar-left">
+      <a href="#">He thong cua hang</a>
+      <span>|</span>
+      <a href="#">Lien he</a>
+      <span>|</span>
+      <a href="#">Tuyen dung</a>
     </div>
+    <div class="topbar-right">
+      <a href="#" title="Facebook">f</a>
+      <a href="#" title="YouTube">&#9654;</a>
+      <a href="#" title="Instagram">ig</a>
+      <a href="#" title="TikTok">tt</a>
+    </div>
+  </div>
+</div>
 
-    <!-- Header -->
-    <header id="header">
-        <div class="hdr-brand">
-            <div class="hdr-title">ASICS GEL-NIMBUS</div>
-            <div class="hdr-sub">ANATOMY // EXPLODED VIEW</div>
+<!-- HEADER -->
+<header class="header" id="header">
+  <div class="container">
+    <a href="#" class="logo">ASICS<span>.</span>VN</a>
+    <div class="header-search">
+      <input type="text" id="search-input" placeholder="Tim kiem giay chay bo ASICS..." autocomplete="off">
+      <button id="search-btn">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><line x1="13" y1="13" x2="17" y2="17"/></svg>
+      </button>
+    </div>
+    <div class="header-right">
+      <div class="header-hotline">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328z"/></svg>
+        0931.619.177
+      </div>
+      <button class="header-icon" id="cart-btn" title="Gio hang">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/><path d="M1 1h3.5l2.2 11h11.3l2.2-8H6.5"/></svg>
+        <span class="cart-count" id="cart-badge">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN NAVIGATION -->
+<nav class="main-nav" id="main-nav">
+  <div class="container">
+    <button class="hamburger" id="hamburger">&#9776;</button>
+    <div class="nav-links" id="nav-links">
+      <a href="#" class="active">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6.5 6.5A.5.5 0 0 0 1.5 8.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-4h3v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146z"/></svg>
+        Trang chu
+      </a>
+      <a href="#">Giay chay duong</a>
+      <a href="#">Giay trail</a>
+      <a href="#">Giay dua - Racing</a>
+      <a href="#">Hang moi</a>
+      <a href="#">Khuyen mai</a>
+    </div>
+  </div>
+</nav>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <div class="container">
+    <a href="#">Trang chu</a>
+    <span class="sep">&#8250;</span>
+    <a href="#">Giay chay bo</a>
+    <span class="sep">&#8250;</span>
+    <span class="current">Giay chay bo ASICS</span>
+  </div>
+</div>
+
+<!-- HERO BANNER -->
+<section class="hero-banner">
+  <div class="container">
+    <div class="hero-text">
+      <span class="hero-tag">Bo suu tap 2026</span>
+      <h1>Giay Chay Bo<br><span>ASICS</span> Chinh Hang</h1>
+      <p>Trai nghiem cong nghe dem toi tan. GEL, FlyteFoam, FF BLAST - moi doi giay duoc che tac chinh xac cho nhung VDV dam me toc do.</p>
+      <div class="hero-btns">
+        <a href="#products" class="hero-btn hero-btn-primary">MUA NGAY</a>
+        <a href="#" class="hero-btn hero-btn-outline">KHAM PHA</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="num">50+</div><div class="lbl">Mau giay</div></div>
+        <div class="hero-stat"><div class="num">4.8</div><div class="lbl">Danh gia</div></div>
+        <div class="hero-stat"><div class="num">10K+</div><div class="lbl">Khach hang</div></div>
+      </div>
+    </div>
+    <div class="hero-img">
+      <img src="img/hero-banner.jpg" alt="ASICS Running - Paris Campaign">
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES BAR -->
+<div style="max-width:1200px;margin:20px auto 0;padding:0 15px">
+  <div class="features-bar">
+    <div class="feat-item"><div class="feat-icon">&#10003;</div><div class="feat-text"><h5>Chinh hang 100%</h5><p>San pham nhap khau chinh hang</p></div></div>
+    <div class="feat-item"><div class="feat-icon">&#9733;</div><div class="feat-text"><h5>Mien phi van chuyen</h5><p>Don hang tu 3.000.000d</p></div></div>
+    <div class="feat-item"><div class="feat-icon">&#8634;</div><div class="feat-text"><h5>Doi tra 30 ngay</h5><p>Doi tra mien phi trong 30 ngay</p></div></div>
+    <div class="feat-item"><div class="feat-icon">&#9742;</div><div class="feat-text"><h5>Ho tro 24/7</h5><p>Hotline: 0931.619.177</p></div></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content" id="products">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="filter-box">
+      <div class="filter-box-header"><h4>Danh muc</h4></div>
+      <div class="filter-box-body" id="filter-cats"></div>
+    </div>
+    <div class="filter-box">
+      <div class="filter-box-header"><h4>Khoang gia</h4></div>
+      <div class="filter-box-body price-options" id="filter-price"></div>
+    </div>
+    <div class="filter-box">
+      <div class="filter-box-header"><h4>Gioi tinh</h4></div>
+      <div class="filter-box-body" id="filter-gender"></div>
+    </div>
+    <button class="clear-btn" id="clear-filters">Xoa tat ca bo loc</button>
+  </aside>
+
+  <!-- PRODUCTS -->
+  <div class="products-area">
+    <div class="sort-bar">
+      <div class="result-count" id="products-count"></div>
+      <div class="sort-controls">
+        <label>Sap xep:</label>
+        <select class="sort-select" id="sort-select">
+          <option value="featured">Noi bat</option>
+          <option value="price-asc">Gia: Thap den Cao</option>
+          <option value="price-desc">Gia: Cao den Thap</option>
+          <option value="rating">Danh gia cao nhat</option>
+          <option value="name">Ten A-Z</option>
+        </select>
+        <div class="view-toggle">
+          <button class="view-btn active" title="Luoi 4">&#9638;</button>
+          <button class="view-btn" title="Luoi 3">&#9641;</button>
         </div>
-        <div class="controls">
-            <button class="btn" id="btn-explode">EXPLODE</button>
-            <button class="btn active" id="btn-rotate">AUTO ROTATE</button>
-            <button class="btn" id="btn-reset">RESET VIEW</button>
+      </div>
+    </div>
+    <div class="products-grid" id="products-grid"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-top">
+    <div class="container">
+      <div class="footer-about">
+        <h5>ASICS Vietnam</h5>
+        <p>Anima Sana In Corpore Sano — "Tinh than lanh manh trong co the khoe manh". Tu nam 1949, ASICS da tao ra nhung san pham the thao hang dau the gioi.</p>
+        <div class="footer-contact">
+          <span><strong>&#9742;</strong> Hotline: 0931.619.177</span>
+          <span><strong>&#9993;</strong> Email: htruonggia16@gmail.com</span>
+          <span><strong>&#9673;</strong> To 1, Thanh An, Phuong An Khe, Tinh Gia Lai</span>
         </div>
-    </header>
-
-    <!-- Info Panel -->
-    <aside id="info-panel">
-        <div class="panel-top">
-            <span class="panel-num" id="pn-num">01</span>
-            <button class="panel-close" id="pn-close">&times;</button>
+      </div>
+      <div>
+        <h5>San pham</h5>
+        <ul>
+          <li><a href="#">Giay chay bo Neutral</a></li>
+          <li><a href="#">Giay chay bo Stability</a></li>
+          <li><a href="#">Giay dua Racing</a></li>
+          <li><a href="#">Giay trail</a></li>
+          <li><a href="#">Hang moi ve</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Ho tro</h5>
+        <ul>
+          <li><a href="#">Huong dan mua hang</a></li>
+          <li><a href="#">Chinh sach van chuyen</a></li>
+          <li><a href="#">Chinh sach doi tra</a></li>
+          <li><a href="#">Huong dan chon size</a></li>
+          <li><a href="#">Lien he</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Dang ky nhan tin</h5>
+        <div class="footer-newsletter">
+          <input type="email" placeholder="Email cua ban..." id="newsletter-email">
+          <button onclick="handleNewsletter(event)">Dang ky</button>
         </div>
-        <div class="p-name" id="pn-name"></div>
-        <div class="p-sub" id="pn-sub"></div>
-        <div class="p-line"></div>
-        <p class="p-desc" id="pn-desc"></p>
-        <ul class="p-specs" id="pn-specs"></ul>
-    </aside>
-
-    <!-- Component Selector -->
-    <nav id="comp-selector"></nav>
-
-    <!-- SVG Annotation Overlay -->
-    <svg id="anno-svg" xmlns="http://www.w3.org/2000/svg"></svg>
-
-    <!-- 3D Label Container -->
-    <div id="labels"></div>
-
-    <!-- Canvas -->
-    <canvas id="viewport"></canvas>
-
-    <!-- Three.js Import Map -->
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
-        }
-    }
-    </script>
-
-    <!-- GSAP -->
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-
-        const { gsap } = window;
-
-        /* ================================================================
-           COMPONENT DATA
-           ================================================================ */
-        const PARTS = [
-            {
-                id: 'outsole', num: '01', short: 'OUTSOLE',
-                name: 'AHAR+ RUBBER OUTSOLE',
-                sub: 'High Abrasion Rubber Plus',
-                desc: 'ASICS High Abrasion Rubber Plus compound strategically placed in critical zones for exceptional durability and multi-surface traction. Forefoot flex grooves promote natural foot articulation and efficient toe-off.',
-                specs: ['Material: AHAR+ Compound','Durability: +50% vs standard rubber','Multi-directional flex grooves','Wet-surface traction pattern'],
-                assembled: 0, exploded: -5,
-            },
-            {
-                id: 'midsole', num: '02', short: 'MIDSOLE',
-                name: 'FLYTEFOAM MIDSOLE',
-                sub: 'with PureGEL Technology',
-                desc: 'Lightweight FlyteFoam midsole with organic nanofibers delivers responsive cushioning and resilient energy return. Embedded PureGEL inserts at the rearfoot provide exceptionally soft heel landings.',
-                specs: ['Material: FlyteFoam™ Blend','40% lighter than standard EVA','PureGEL™ rearfoot inserts','Organic nanofiber reinforcement'],
-                assembled: 1.2, exploded: 2,
-            },
-            {
-                id: 'sockliner', num: '03', short: 'SOCKLINER',
-                name: 'ORTHOLITE SOCKLINER',
-                sub: 'Removable Comfort Insert',
-                desc: 'Premium OrthoLite sockliner provides lasting step-in comfort with superior moisture management. Removable design accommodates custom orthotics.',
-                specs: ['Material: OrthoLite™ Foam','Moisture-wicking surface','Removable / replaceable','Anti-microbial treatment'],
-                assembled: 4.5, exploded: 8,
-            },
-            {
-                id: 'upper', num: '04', short: 'UPPER',
-                name: 'ENGINEERED MESH UPPER',
-                sub: 'Adaptive Fit Technology',
-                desc: 'Multi-layered engineered knit mesh upper delivers zoned support, breathability, and an adaptive fit. Internal heel counter provides structured rearfoot lockdown.',
-                specs: ['Material: Engineered Knit Mesh','Multi-zone ventilation','Adaptive stretch-fit zones','Reinforced heel counter'],
-                assembled: 5.0, exploded: 14,
-            },
-            {
-                id: 'tongue', num: '05', short: 'TONGUE',
-                name: 'PADDED TONGUE',
-                sub: 'Pressure-Reducing Design',
-                desc: 'Generously padded tongue with soft lining distributes lace pressure evenly across the instep. Internal gusset prevents tongue migration during runs.',
-                specs: ['Material: Padded mesh foam','Gusseted construction','Pressure distribution layer','Moisture-wicking lining'],
-                assembled: 5.0, exploded: 20,
-            },
-            {
-                id: 'laces', num: '06', short: 'LACES',
-                name: 'LACING SYSTEM',
-                sub: 'Precision Fit',
-                desc: 'Flat woven lacing system with reinforced eyelet channels provides secure, micro-adjustable fit. Low-profile design minimizes pressure hot spots.',
-                specs: ['Material: Woven polyester','Flat profile laces','Reinforced eyelet channels','Variable tension zones'],
-                assembled: 5.0, exploded: 25,
-            },
-        ];
-
-        /* ================================================================
-           RENDERER / SCENE / CAMERA
-           ================================================================ */
-        const canvas = document.getElementById('viewport');
-        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0x0a0a0f);
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.0;
-
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
-        camera.position.set(24, 14, 24);
-
-        /* ================================================================
-           CONTROLS
-           ================================================================ */
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.07;
-        controls.minDistance = 18;
-        controls.maxDistance = 60;
-        controls.maxPolarAngle = Math.PI * 0.82;
-        controls.target.set(0, 5, 0);
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.5;
-        controls.update();
-
-        let autoRotateWanted = true;
-        let idleTimer = null;
-        controls.addEventListener('start', () => {
-            controls.autoRotate = false;
-            clearTimeout(idleTimer);
-        });
-        controls.addEventListener('end', () => {
-            idleTimer = setTimeout(() => { if (autoRotateWanted) controls.autoRotate = true; }, 3000);
-        });
-
-        /* ================================================================
-           POST-PROCESSING
-           ================================================================ */
-        const composer = new EffectComposer(renderer);
-        composer.addPass(new RenderPass(scene, camera));
-        composer.addPass(new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight), 0.55, 0.4, 0.82));
-        composer.addPass(new OutputPass());
-
-        /* ================================================================
-           LIGHTING
-           ================================================================ */
-        scene.add(new THREE.AmbientLight(0x111125, 0.35));
-
-        const keyLight = new THREE.DirectionalLight(0xffffff, 1.15);
-        keyLight.position.set(10, 16, 8);
-        scene.add(keyLight);
-
-        const fillLight = new THREE.DirectionalLight(0x4a8ad9, 0.35);
-        fillLight.position.set(-12, -4, -6);
-        scene.add(fillLight);
-
-        const rimLight = new THREE.DirectionalLight(0x9b59b6, 0.55);
-        rimLight.position.set(0, 10, -16);
-        scene.add(rimLight);
-
-        const spot = new THREE.SpotLight(0x00d4ff, 0.7, 65, 0.45, 0.85);
-        spot.position.set(0, 28, 0);
-        scene.add(spot);
-
-        /* ================================================================
-           ENVIRONMENT — Grid + Particles
-           ================================================================ */
-        const grid = new THREE.GridHelper(55, 55, 0x00d4ff, 0x0a0a18);
-        grid.material.transparent = true;
-        grid.material.opacity = 0.1;
-        grid.position.y = -0.8;
-        scene.add(grid);
-
-        const PC = 350;
-        const pGeo = new THREE.BufferGeometry();
-        const pPos = new Float32Array(PC * 3);
-        const pSpd = new Float32Array(PC);
-        for (let i = 0; i < PC; i++) {
-            pPos[i*3]   = (Math.random()-0.5)*65;
-            pPos[i*3+1] = Math.random()*45;
-            pPos[i*3+2] = (Math.random()-0.5)*65;
-            pSpd[i] = 0.008 + Math.random()*0.025;
-        }
-        pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-        const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({
-            color: 0x00d4ff, size: 0.07, transparent: true, opacity: 0.3,
-            blending: THREE.AdditiveBlending, depthWrite: false,
-        }));
-        scene.add(particles);
-
-        /* ================================================================
-           SHARED FOOT SHAPE
-           ================================================================ */
-        function footShape(s = 1) {
-            const sh = new THREE.Shape();
-            sh.moveTo(0, -12*s);
-            sh.bezierCurveTo( 3.0*s,-12.0*s,  4.5*s,-10.5*s,  4.8*s, -8.0*s);
-            sh.bezierCurveTo( 4.5*s, -4.0*s,  4.2*s, -1.0*s,  4.5*s,  2.0*s);
-            sh.bezierCurveTo( 5.0*s,  5.0*s,  5.3*s,  8.0*s,  4.8*s, 10.0*s);
-            sh.bezierCurveTo( 4.2*s, 12.0*s,  2.5*s, 13.0*s,  0.0,   13.5*s);
-            sh.bezierCurveTo(-2.5*s, 13.0*s, -4.2*s, 12.0*s, -4.8*s, 10.0*s);
-            sh.bezierCurveTo(-5.3*s,  8.0*s, -5.0*s,  5.0*s, -4.5*s,  2.0*s);
-            sh.bezierCurveTo(-4.2*s, -1.0*s, -3.5*s, -4.0*s, -3.2*s, -8.0*s);
-            sh.bezierCurveTo(-3.5*s,-10.5*s, -3.0*s,-12.0*s,  0.0,  -12.0*s);
-            return sh;
-        }
-
-        /* ================================================================
-           GEOMETRY BUILDERS
-           ================================================================ */
-
-        /* -- OUTSOLE --------------------------------------------------- */
-        function buildOutsole() {
-            const g = new THREE.Group();
-            const geo = new THREE.ExtrudeGeometry(footShape(1.0), {
-                depth: 1.0, bevelEnabled: true,
-                bevelThickness: 0.15, bevelSize: 0.15, bevelSegments: 2,
-            });
-            geo.rotateX(-Math.PI / 2);
-
-            const tC = document.createElement('canvas');
-            tC.width = tC.height = 256;
-            const ctx = tC.getContext('2d');
-            ctx.fillStyle = '#181830';
-            ctx.fillRect(0, 0, 256, 256);
-            ctx.strokeStyle = '#222244';
-            ctx.lineWidth = 0.8;
-            for (let i = 0; i < 256; i += 8) {
-                ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,256); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(256,i); ctx.stroke();
-            }
-            const tex = new THREE.CanvasTexture(tC);
-            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-            tex.repeat.set(4, 4);
-
-            const mat = new THREE.MeshPhysicalMaterial({
-                color: 0x181830, roughness: 0.72, metalness: 0.08,
-                clearcoat: 0.35, clearcoatRoughness: 0.4,
-                bumpMap: tex, bumpScale: 0.25,
-            });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.userData = { selectable: true, componentId: 'outsole' };
-            g.add(mesh);
-
-            const gMat = new THREE.MeshStandardMaterial({ color: 0x08080f, roughness: 0.95 });
-            for (let i = 0; i < 5; i++) {
-                const gGeo = new THREE.BoxGeometry(8.5, 0.12, 0.35);
-                const gM = new THREE.Mesh(gGeo, gMat);
-                gM.position.set(0, 0.08, -(3.5 + i * 2.1));
-                g.add(gM);
-            }
-            return g;
-        }
-
-        /* -- MIDSOLE --------------------------------------------------- */
-        function buildMidsole() {
-            const g = new THREE.Group();
-            const geo = new THREE.ExtrudeGeometry(footShape(0.96), {
-                depth: 3.0, bevelEnabled: true,
-                bevelThickness: 0.4, bevelSize: 0.4, bevelSegments: 3,
-            });
-            geo.rotateX(-Math.PI / 2);
-
-            const pos = geo.getAttribute('position');
-            for (let i = 0; i < pos.count; i++) {
-                let y = pos.getY(i), z = pos.getZ(i);
-                if (y > 0.8) {
-                    const hf = Math.max(0, z) / 12;
-                    y += Math.pow(hf, 1.3) * 1.4;
-                }
-                pos.setY(i, y);
-            }
-            geo.computeVertexNormals();
-
-            const mat = new THREE.MeshPhysicalMaterial({
-                color: 0xe6e6f2, roughness: 0.38, metalness: 0.0, clearcoat: 0.08,
-            });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.userData = { selectable: true, componentId: 'midsole' };
-            g.add(mesh);
-
-            const gelMat = new THREE.MeshPhysicalMaterial({
-                color: 0x7c3aed, roughness: 0.12, metalness: 0.0,
-                transparent: true, opacity: 0.7,
-                emissive: 0x7c3aed, emissiveIntensity: 0.35,
-            });
-            const gelGeo = new THREE.SphereGeometry(1, 22, 14);
-            [[-1.3, 1.6, 7.5], [1.3, 1.6, 7.5]].forEach(p => {
-                const gm = new THREE.Mesh(gelGeo.clone(), gelMat);
-                gm.scale.set(2.0, 0.55, 2.0);
-                gm.position.set(...p);
-                g.add(gm);
-            });
-            return g;
-        }
-
-        /* -- SOCKLINER ------------------------------------------------- */
-        function buildSockliner() {
-            const g = new THREE.Group();
-            const geo = new THREE.ExtrudeGeometry(footShape(0.88), {
-                depth: 0.45, bevelEnabled: true,
-                bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 1,
-            });
-            geo.rotateX(-Math.PI / 2);
-
-            const pos = geo.getAttribute('position');
-            for (let i = 0; i < pos.count; i++) {
-                let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-                if (y > 0.25) {
-                    const d = Math.sqrt(x*x + z*z) / 14;
-                    y -= (1 - d) * 0.12;
-                }
-                pos.setY(i, y);
-            }
-            geo.computeVertexNormals();
-
-            const mat = new THREE.MeshStandardMaterial({ color: 0x28283e, roughness: 0.92 });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.userData = { selectable: true, componentId: 'sockliner' };
-            g.add(mesh);
-            return g;
-        }
-
-        /* -- UPPER ----------------------------------------------------- */
-        function buildUpper() {
-            const g = new THREE.Group();
-            const geo = new THREE.SphereGeometry(1, 36, 24, 0, Math.PI*2, 0, Math.PI*0.52);
-            const pos = geo.getAttribute('position');
-
-            for (let i = 0; i < pos.count; i++) {
-                let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-                x *= 4.9;  z *= 13.2;
-                y = Math.max(y, 0) * 7.2;
-
-                const zN = (z + 13.2) / 26.4;
-                if (zN < 0.15) x *= 0.78 + (zN / 0.15) * 0.22;
-                if (zN > 0.58) {
-                    const t = (zN - 0.58) / 0.42;
-                    y *= 1 - Math.pow(t, 1.4) * 0.6;
-                    x *= 1 - t * 0.38;
-                }
-                if (zN > 0.3 && zN < 0.58) x *= 1.05;
-
-                pos.setXYZ(i, x, y, z);
-            }
-            geo.computeVertexNormals();
-
-            const mat = new THREE.MeshPhysicalMaterial({
-                color: 0x18183a, roughness: 0.55, metalness: 0.12, clearcoat: 0.18,
-            });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.userData = { selectable: true, componentId: 'upper' };
-            g.add(mesh);
-
-            const wMat = new THREE.MeshBasicMaterial({
-                color: 0x00d4ff, wireframe: true, transparent: true, opacity: 0.09,
-            });
-            g.add(new THREE.Mesh(geo.clone(), wMat));
-            return g;
-        }
-
-        /* -- TONGUE ---------------------------------------------------- */
-        function buildTongue() {
-            const g = new THREE.Group();
-            const geo = new THREE.PlaneGeometry(3.2, 7.5, 10, 14);
-            const pos = geo.getAttribute('position');
-
-            for (let i = 0; i < pos.count; i++) {
-                let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-                const yN = (y + 3.75) / 7.5;
-                z = -Math.sin(yN * Math.PI * 0.28) * 1.3 - Math.cos((x / 3.2) * Math.PI) * 0.25;
-                x *= 0.82 + yN * 0.18;
-                pos.setXYZ(i, x, y, z);
-            }
-            geo.computeVertexNormals();
-
-            const mat = new THREE.MeshStandardMaterial({
-                color: 0x222248, roughness: 0.88, metalness: 0.04, side: THREE.DoubleSide,
-            });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.rotation.x = -Math.PI / 2 - 0.12;
-            mesh.position.set(0, 6.8, -2.5);
-            mesh.userData = { selectable: true, componentId: 'tongue' };
-            g.add(mesh);
-            return g;
-        }
-
-        /* -- LACES ----------------------------------------------------- */
-        function buildLaces() {
-            const g = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({
-                color: 0xf5f5ff, roughness: 0.55, metalness: 0.08,
-                emissive: 0x00d4ff, emissiveIntensity: 0.12,
-            });
-
-            const bars = [
-                { z: -5.5, y: 6.5, w: 3.1 },
-                { z: -3.2, y: 6.9, w: 2.9 },
-                { z: -0.8, y: 7.1, w: 2.7 },
-                { z:  1.5, y: 7.2, w: 2.4 },
-                { z:  3.8, y: 7.2, w: 2.1 },
-            ];
-            bars.forEach(b => {
-                const curve = new THREE.CatmullRomCurve3([
-                    new THREE.Vector3(-b.w, b.y, b.z),
-                    new THREE.Vector3(0,     b.y + 0.5, b.z),
-                    new THREE.Vector3( b.w,  b.y, b.z),
-                ]);
-                const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 14, 0.065, 6, false), mat);
-                tube.userData = { selectable: true, componentId: 'laces' };
-                g.add(tube);
-            });
-            return g;
-        }
-
-        /* ================================================================
-           ASSEMBLE SHOE
-           ================================================================ */
-        const shoeGroup = new THREE.Group();
-        const groups = {};
-        const builders = { outsole: buildOutsole, midsole: buildMidsole, sockliner: buildSockliner,
-                           upper: buildUpper, tongue: buildTongue, laces: buildLaces };
-
-        PARTS.forEach(p => {
-            const grp = builders[p.id]();
-            grp.position.y = p.assembled - 12;
-            groups[p.id] = grp;
-            shoeGroup.add(grp);
-        });
-        scene.add(shoeGroup);
-
-        const selectables = [];
-        shoeGroup.traverse(c => { if (c.isMesh && c.userData.selectable) selectables.push(c); });
-
-        /* ================================================================
-           ENTRANCE ANIMATION
-           ================================================================ */
-        PARTS.forEach((p, i) => {
-            gsap.to(groups[p.id].position, {
-                y: p.assembled, duration: 1.6, delay: 0.5 + i * 0.12, ease: 'power3.out',
-            });
-        });
-
-        /* ================================================================
-           EXPLODE / ASSEMBLE
-           ================================================================ */
-        let isExploded = false;
-        const explodeTL = gsap.timeline({ paused: true });
-        PARTS.forEach((p, i) => {
-            explodeTL.to(groups[p.id].position, {
-                y: p.exploded, duration: 1.3, ease: 'power2.inOut',
-            }, i * 0.07);
-        });
-        explodeTL.to(controls.target, { y: 10, duration: 1.3, ease: 'power2.inOut' }, 0);
-
-        function toggleExplode() {
-            isExploded = !isExploded;
-            if (isExploded) {
-                explodeTL.play();
-                document.getElementById('btn-explode').textContent = 'ASSEMBLE';
-                document.getElementById('btn-explode').classList.add('active');
-                showLabels();
-            } else {
-                explodeTL.reverse();
-                document.getElementById('btn-explode').textContent = 'EXPLODE';
-                document.getElementById('btn-explode').classList.remove('active');
-                hideLabels();
-            }
-        }
-
-        /* ================================================================
-           RAYCASTING & INTERACTION
-           ================================================================ */
-        const ray = new THREE.Raycaster();
-        const ptr = new THREE.Vector2(-9, -9);
-        let hovId = null, selId = null;
-
-        canvas.addEventListener('pointermove', e => {
-            ptr.x = (e.clientX / window.innerWidth) * 2 - 1;
-            ptr.y = -(e.clientY / window.innerHeight) * 2 + 1;
-        });
-        canvas.addEventListener('click', e => {
-            if (e.target.closest('#header, #info-panel, #comp-selector')) return;
-            ray.setFromCamera(ptr, camera);
-            const hits = ray.intersectObjects(selectables);
-            hits.length ? selectComp(hits[0].object.userData.componentId) : deselectComp();
-        });
-
-        function updateHover() {
-            ray.setFromCamera(ptr, camera);
-            const hits = ray.intersectObjects(selectables);
-            const newId = hits.length ? hits[0].object.userData.componentId : null;
-            if (newId === hovId) return;
-            if (hovId && hovId !== selId) { setGlow(hovId, 0); setScale(hovId, 1); }
-            if (newId && newId !== selId) { setGlow(newId, 0.12); setScale(newId, 1.02); }
-            hovId = newId;
-            canvas.style.cursor = hovId ? 'pointer' : 'default';
-        }
-
-        function selectComp(id) {
-            if (selId) { setGlow(selId, 0); setScale(selId, 1); }
-            selId = id;
-            setGlow(id, 0.22);
-            setScale(id, 1.03);
-            showPanel(PARTS.find(p => p.id === id));
-            document.querySelectorAll('.comp-card').forEach(c =>
-                c.classList.toggle('active', c.dataset.id === id));
-        }
-
-        function deselectComp() {
-            if (selId) { setGlow(selId, 0); setScale(selId, 1); selId = null; }
-            hidePanel();
-            document.querySelectorAll('.comp-card').forEach(c => c.classList.remove('active'));
-        }
-
-        function setGlow(id, intensity) {
-            groups[id].traverse(c => {
-                if (c.isMesh && c.userData.selectable && c.material.emissive) {
-                    c.material.emissive.setHex(intensity > 0 ? 0x00d4ff : 0x000000);
-                    c.material.emissiveIntensity = intensity;
-                }
-            });
-        }
-        function setScale(id, s) {
-            gsap.to(groups[id].scale, { x: s, y: s, z: s, duration: 0.3, ease: 'power2.out' });
-        }
-
-        /* ================================================================
-           LABELS & ANNOTATION LINES
-           ================================================================ */
-        const lblBox = document.getElementById('labels');
-        const svgEl = document.getElementById('anno-svg');
-        const lblEls = {}, annoEls = {};
-        let lblsOn = false;
-
-        PARTS.forEach(p => {
-            const d = document.createElement('div');
-            d.className = 'lbl'; d.style.opacity = '0';
-            d.innerHTML = `<span class="lbl-inner">${p.short}</span>`;
-            lblBox.appendChild(d);
-            lblEls[p.id] = d;
-
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('stroke', '#00d4ff'); line.setAttribute('stroke-opacity', '0.3');
-            line.setAttribute('stroke-width', '1'); line.setAttribute('stroke-dasharray', '5 3');
-            line.style.opacity = '0';
-            svgEl.appendChild(line);
-
-            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            dot.setAttribute('r', '2.5'); dot.setAttribute('fill', '#00d4ff');
-            dot.setAttribute('fill-opacity', '0.55'); dot.style.opacity = '0';
-            svgEl.appendChild(dot);
-
-            annoEls[p.id] = { line, dot };
-        });
-
-        function w2s(pos) {
-            const v = pos.clone().project(camera);
-            return { x: (v.x*0.5+0.5)*window.innerWidth, y: (-v.y*0.5+0.5)*window.innerHeight, ok: v.z < 1 };
-        }
-
-        function showLabels() { lblsOn = true; }
-        function hideLabels() {
-            lblsOn = false;
-            Object.values(lblEls).forEach(e => e.style.opacity = '0');
-            Object.values(annoEls).forEach(({line,dot}) => { line.style.opacity='0'; dot.style.opacity='0'; });
-        }
-
-        function updateLabels() {
-            if (!lblsOn) return;
-            PARTS.forEach(p => {
-                const wp = new THREE.Vector3();
-                groups[p.id].getWorldPosition(wp);
-                wp.y += 1.2;
-                const s = w2s(wp);
-                const el = lblEls[p.id], { line, dot } = annoEls[p.id];
-                if (!s.ok || s.x < 0 || s.x > window.innerWidth || s.y < 0 || s.y > window.innerHeight) {
-                    el.style.opacity = '0'; line.style.opacity = '0'; dot.style.opacity = '0';
-                    return;
-                }
-                const lx = s.x + 110, ly = s.y;
-                el.style.left = lx + 'px'; el.style.top = ly + 'px'; el.style.opacity = '1';
-                line.setAttribute('x1', s.x); line.setAttribute('y1', s.y);
-                line.setAttribute('x2', lx - 4); line.setAttribute('y2', ly);
-                line.style.opacity = '1';
-                dot.setAttribute('cx', s.x); dot.setAttribute('cy', s.y); dot.style.opacity = '1';
-            });
-        }
-
-        /* ================================================================
-           UI CONTROLS
-           ================================================================ */
-        function showPanel(p) {
-            document.getElementById('pn-num').textContent = p.num;
-            document.getElementById('pn-name').textContent = p.name;
-            document.getElementById('pn-sub').textContent = p.sub;
-            document.getElementById('pn-desc').textContent = p.desc;
-            const ul = document.getElementById('pn-specs');
-            ul.innerHTML = '';
-            p.specs.forEach(s => { const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); });
-            document.getElementById('info-panel').classList.add('visible');
-        }
-        function hidePanel() { document.getElementById('info-panel').classList.remove('visible'); }
-
-        const selNav = document.getElementById('comp-selector');
-        PARTS.forEach(p => {
-            const d = document.createElement('div');
-            d.className = 'comp-card'; d.dataset.id = p.id;
-            d.innerHTML = `<div class="cc-num">${p.num}</div><div class="cc-name">${p.short}</div>`;
-            d.addEventListener('click', () => selectComp(p.id));
-            selNav.appendChild(d);
-        });
-
-        document.getElementById('btn-explode').addEventListener('click', toggleExplode);
-        document.getElementById('btn-rotate').addEventListener('click', () => {
-            autoRotateWanted = !autoRotateWanted;
-            controls.autoRotate = autoRotateWanted;
-            document.getElementById('btn-rotate').classList.toggle('active', autoRotateWanted);
-        });
-        document.getElementById('btn-reset').addEventListener('click', () => {
-            gsap.to(camera.position, { x: 24, y: 14, z: 24, duration: 1.2, ease: 'power2.inOut' });
-            gsap.to(controls.target, { x: 0, y: isExploded ? 10 : 5, z: 0, duration: 1.2, ease: 'power2.inOut' });
-            deselectComp();
-        });
-        document.getElementById('pn-close').addEventListener('click', deselectComp);
-
-        /* ================================================================
-           RESIZE
-           ================================================================ */
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        /* ================================================================
-           RENDER LOOP
-           ================================================================ */
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-
-            const pp = particles.geometry.getAttribute('position');
-            for (let i = 0; i < PC; i++) {
-                let y = pp.getY(i) + pSpd[i];
-                if (y > 45) y = 0;
-                pp.setY(i, y);
-            }
-            pp.needsUpdate = true;
-
-            updateHover();
-            updateLabels();
-            composer.render();
-        }
-
-        /* ================================================================
-           LOADING SEQUENCE
-           ================================================================ */
-        const lFill = document.getElementById('load-fill');
-        const lStat = document.getElementById('load-status');
-        lFill.style.width = '55%';
-        lStat.textContent = 'BUILDING GEOMETRY...';
-
-        setTimeout(() => {
-            lFill.style.width = '100%';
-            lStat.textContent = 'SYSTEMS ONLINE';
-            setTimeout(() => {
-                document.getElementById('loading').classList.add('hidden');
-                animate();
-            }, 600);
-        }, 900);
-    </script>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container">
+      <span>&copy; 2026 ASICS Vietnam. All rights reserved.</span>
+      <div class="footer-socials">
+        <a href="#" title="Facebook">f</a>
+        <a href="#" title="YouTube">&#9654;</a>
+        <a href="#" title="Instagram">ig</a>
+        <a href="#" title="TikTok">tt</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="modal-overlay"></div>
+<div class="modal" id="product-modal">
+  <button class="modal-close" id="modal-close">&times;</button>
+  <div class="modal-body" id="modal-body"></div>
+</div>
+
+<!-- CART SIDEBAR -->
+<div class="cart-overlay" id="cart-overlay"></div>
+<div class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-header">
+    <h3>Gio hang cua ban</h3>
+    <button class="cart-close" id="cart-close">&times;</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer" id="cart-footer"></div>
+</div>
+
+<!-- SCROLL TO TOP -->
+<button class="scroll-top" id="scroll-top">&#8593;</button>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+/* ================================================================
+   PRODUCT DATA (VND pricing)
+   ================================================================ */
+const PRODUCTS = [
+  { id:1, name:'ASICS GEL-NIMBUS 26', cat:'Neutral', gender:'Unisex', price:4050000, origPrice:null, isNew:true, sale:false,
+    rating:4.8, reviews:342, tagline:'Dem toi da', img:'img/nimbus26.jpg',
+    desc:'GEL-NIMBUS 26 su dung cong nghe PureGEL cho buoc tiep dat mem mai va dem FF BLAST PLUS ECO sieu nhe, dan hoi. Than giay mesh ky thuat tu thich ung voi hinh dang ban chan.',
+    colors:[{n:'French Blue',h:'#2d5da1',g:'linear-gradient(135deg,#e8f0fa,#a3c4e8)'},{n:'Black/Pure Silver',h:'#222',g:'linear-gradient(135deg,#e8e8ec,#b0b0b8)'},{n:'Sunrise Red',h:'#c73e3e',g:'linear-gradient(135deg,#fae8e8,#e8a0a0)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,43.5,44,45], specs:{'Trong luong':'290g','Do chenh':'8mm','Dem':'Toi da','Loai':'Neutral'}},
+  { id:2, name:'ASICS GEL-KAYANO 31', cat:'Stability', gender:'Unisex', price:4050000, origPrice:null, isNew:true, sale:false,
+    rating:4.7, reviews:518, tagline:'On dinh & Ho tro', img:'img/kayano31.jpg',
+    desc:'GEL-KAYANO 31 mang lai su on dinh tuyet voi voi cong nghe 4D GUIDANCE SYSTEM. PureGEL o got hap thu luc tac dong trong khi de giua FF BLAST PLUS ECO tra nang luong hieu qua.',
+    colors:[{n:'Midnight Blue',h:'#1a3366',g:'linear-gradient(135deg,#e0e8f5,#8aa8d8)'},{n:'Black/Electric Lime',h:'#1a1a2e',g:'linear-gradient(135deg,#e8f0d8,#a0c868)'},{n:'Sheet Rock',h:'#b8b4a8',g:'linear-gradient(135deg,#f5f2ee,#d0ccc0)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,43.5,44,45], specs:{'Trong luong':'305g','Do chenh':'10mm','Dem':'Toi da','Loai':'Stability'}},
+  { id:3, name:'ASICS GEL-CUMULUS 26', cat:'Neutral', gender:'Unisex', price:3290000, origPrice:null, isNew:false, sale:false,
+    rating:4.6, reviews:287, tagline:'Thoai mai hang ngay', img:'img/cumulus26.jpg',
+    desc:'Giay tap luyen hang ngay da nang voi dem FF BLAST PLUS cho cam giac mem mai, dan hoi. Than giay mesh thoang khi va vua voi chan thoai mai moi khoang cach.',
+    colors:[{n:'Nature Bathing',h:'#5a8c6e',g:'linear-gradient(135deg,#e5f0e8,#a0c8a8)'},{n:'Black/White',h:'#222',g:'linear-gradient(135deg,#e8e8ec,#b0b0b8)'},{n:'Illusion Blue',h:'#4a7eb5',g:'linear-gradient(135deg,#e0ecf5,#90b8d8)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,44], specs:{'Trong luong':'275g','Do chenh':'8mm','Dem':'Trung binh','Loai':'Neutral'}},
+  { id:4, name:'ASICS NOVABLAST 4', cat:'Neutral', gender:'Unisex', price:3540000, origPrice:null, isNew:true, sale:false,
+    rating:4.9, reviews:203, tagline:'Dan hoi & Nang dong', img:'img/novablast4.jpg',
+    desc:'Thiet ke de moi buoc chay deu thu vi. De giua FF BLAST PLUS ECO tao hieu ung bat nhu tram-po-lin, hinh dang rocker day ban tien ve phia truoc.',
+    colors:[{n:'Island Blue',h:'#1a80b0',g:'linear-gradient(135deg,#ddf0f8,#80c8e8)'},{n:'Safety Yellow',h:'#e8d82e',g:'linear-gradient(135deg,#faf8e0,#e8d82e)'},{n:'Black/Lime Zest',h:'#1e1e32',g:'linear-gradient(135deg,#e8f0d8,#a0c868)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,43.5,44], specs:{'Trong luong':'260g','Do chenh':'8mm','Dem':'Cao','Loai':'Neutral'}},
+  { id:5, name:'ASICS GT-2000 13', cat:'Stability', gender:'Unisex', price:3290000, origPrice:null, isNew:false, sale:false,
+    rating:4.5, reviews:412, tagline:'On dinh dang tin cay', img:'img/gt2000.jpg',
+    desc:'Giay on dinh dang tin cay ho tro chan sap nhe ma khong hy sinh su thoai mai. Cong nghe LITETRUSS va he thong 3D GUIDANCE dam bao buoc chuyen tiep hieu qua.',
+    colors:[{n:'Blue Expanse',h:'#3a6e9e',g:'linear-gradient(135deg,#dde8f2,#90b8d0)'},{n:'Black',h:'#1a1a28',g:'linear-gradient(135deg,#e0e0e4,#909098)'},{n:'White/Coral',h:'#f5f0ea',g:'linear-gradient(135deg,#faf0ec,#e8a898)'}],
+    sizes:[39,40,40.5,41,41.5,42,42.5,43,44,45], specs:{'Trong luong':'285g','Do chenh':'10mm','Dem':'Trung binh','Loai':'Stability'}},
+  { id:6, name:'ASICS METASPEED SKY+', cat:'Racing', gender:'Unisex', price:6290000, origPrice:null, isNew:false, sale:false,
+    rating:4.9, reviews:96, tagline:'Dua Elite Marathon', img:'img/metaspeed.jpg',
+    desc:'Danh cho VDV chay sai buoc dai theo duoi ky luc ca nhan. Tam carbon toan bo ket hop FF TURBO PLUS mang lai hieu suat tra nang luong vuot troi cho ngay dua.',
+    colors:[{n:'Sunrise Red',h:'#d63636',g:'linear-gradient(135deg,#fae0e0,#e88080)'},{n:'Safety Yellow',h:'#e8d82e',g:'linear-gradient(135deg,#faf8e0,#ead020)'},{n:'White/Sunrise',h:'#f8f5f0',g:'linear-gradient(135deg,#faf0e4,#f0a060)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,44], specs:{'Trong luong':'185g','Do chenh':'5mm','Dem':'Cao','Loai':'Racing Flat'}},
+  { id:7, name:'ASICS MAGIC SPEED 4', cat:'Racing', gender:'Unisex', price:4290000, origPrice:5050000, isNew:false, sale:true,
+    rating:4.7, reviews:178, tagline:'Tap luyen toc do', img:'img/magicspeed4.jpg',
+    desc:'Hieu suat ngay dua voi muc gia phu hop tap luyen. Tam carbon ket hop FF BLAST PLUS mang lai hieu qua tra nang luong khi chay tempo va dua.',
+    colors:[{n:'Diva Pink',h:'#d04080',g:'linear-gradient(135deg,#fae0ec,#e888b0)'},{n:'Hazard Green',h:'#60c848',g:'linear-gradient(135deg,#e4f5d8,#88d868)'},{n:'Black/White',h:'#1a1a2e',g:'linear-gradient(135deg,#e4e4e8,#a0a0a8)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,43.5], specs:{'Trong luong':'210g','Do chenh':'6mm','Dem':'Trung binh','Loai':'Racing'}},
+  { id:8, name:'ASICS GEL-TRABUCO 12', cat:'Trail', gender:'Unisex', price:3540000, origPrice:null, isNew:false, sale:false,
+    rating:4.6, reviews:156, tagline:'Chinh phuc dia hinh', img:'img/trabuco12.jpg',
+    desc:'Giay trail hung ton voi de ngoai ASICSGRIP cho do bam vuot troi tren dia hinh ky thuat. Tam bao ve da chan khoi vat nhon tren duong rung.',
+    colors:[{n:'Nature Bathing',h:'#4a7050',g:'linear-gradient(135deg,#e0eee4,#90b898)'},{n:'Rain Forest',h:'#2e4a3e',g:'linear-gradient(135deg,#d8e8de,#70a088)'},{n:'Black/Orange',h:'#222',g:'linear-gradient(135deg,#e8e0d8,#c87838)'}],
+    sizes:[39,40,40.5,41,41.5,42,42.5,43,44], specs:{'Trong luong':'310g','Do chenh':'8mm','Dem':'Trung binh','Loai':'Trail'}},
+  { id:9, name:'ASICS GEL-EXCITE 10', cat:'Neutral', gender:'Unisex', price:2150000, origPrice:2500000, isNew:false, sale:true,
+    rating:4.3, reviews:624, tagline:'Giay chay co ban', img:'img/excite10.jpg',
+    desc:'Giay chay hang ngay gia tot voi dem GEL o got. Than giay mesh nhe va thoang khi giu chan mat me khi chay va tap luyen.',
+    colors:[{n:'Black/White',h:'#1e1e30',g:'linear-gradient(135deg,#e4e4e8,#a0a0b0)'},{n:'Piedmont Grey',h:'#9898a0',g:'linear-gradient(135deg,#f0f0f2,#b8b8c0)'},{n:'Blue Bliss',h:'#4880b8',g:'linear-gradient(135deg,#e0ecf5,#88b0d8)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,43.5,44,45,46], specs:{'Trong luong':'265g','Do chenh':'10mm','Dem':'Trung binh','Loai':'Neutral'}},
+  { id:10, name:'ASICS SUPERBLAST 2', cat:'Neutral', gender:'Unisex', price:5050000, origPrice:null, isNew:true, sale:false,
+    rating:4.8, reviews:89, tagline:'Tra nang luong toi da', img:'img/superblast2.jpg',
+    desc:'Chieu cao stack day nhat trong dong ASICS mang lai hieu qua tra nang luong toi da voi dem FF TURBO PLUS. Hinh dang rocker cong tao buoc chuyen doi nhe nhang.',
+    colors:[{n:'Aquamarine',h:'#38b0a0',g:'linear-gradient(135deg,#ddf2f0,#80d0c8)'},{n:'Bright Orange',h:'#e87030',g:'linear-gradient(135deg,#f5e8d8,#f0a868)'},{n:'White/Lilac',h:'#e8e0f0',g:'linear-gradient(135deg,#f2eef8,#c8b0e0)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,44], specs:{'Trong luong':'245g','Do chenh':'5mm','Dem':'Toi da','Loai':'Neutral'}},
+  { id:11, name:'ASICS FUJI SPEED 3', cat:'Trail', gender:'Unisex', price:4050000, origPrice:4560000, isNew:false, sale:true,
+    rating:4.5, reviews:102, tagline:'Dua trail', img:'img/fujispeed3.jpg',
+    desc:'Giay dua trail nhe duoc tao ra cho toc do tren dia hinh ky thuat. Tam carbon tang day trong khi de ngoai ASICSGRIP bam chat tren be mat toi.',
+    colors:[{n:'Nature Bathing',h:'#507848',g:'linear-gradient(135deg,#e0eed8,#98c088)'},{n:'Black/Cherry',h:'#1e1e2e',g:'linear-gradient(135deg,#e8e0e0,#b87070)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43], specs:{'Trong luong':'225g','Do chenh':'5mm','Dem':'Thap','Loai':'Trail Racing'}},
+  { id:12, name:'ASICS GEL-1130', cat:'Neutral', gender:'Unisex', price:2790000, origPrice:null, isNew:false, sale:false,
+    rating:4.4, reviews:845, tagline:'Retro di san', img:'img/gel1130.jpg',
+    desc:'Dang giay Y2K mang tinh bieu tuong tro lai voi su thoai mai hien dai. Cong nghe dem GEL ket hop thiet ke thoi 2000 cho doi giay da nang tu chay bo den duong pho.',
+    colors:[{n:'White/Clay Canyon',h:'#f0e8d8',g:'linear-gradient(135deg,#f8f4ee,#e0d0b0)'},{n:'Pure Silver',h:'#c0c0c8',g:'linear-gradient(135deg,#f2f2f5,#c0c0c8)'},{n:'Black',h:'#1a1a28',g:'linear-gradient(135deg,#e0e0e4,#909098)'}],
+    sizes:[38,38.5,39,39.5,40,40.5,41,41.5,42,42.5,43,43.5,44,45], specs:{'Trong luong':'310g','Do chenh':'10mm','Dem':'Trung binh','Loai':'Retro'}},
+  { id:13, name:'ASICS NOOSA TRI 16', cat:'Racing', gender:'Unisex', price:3890000, origPrice:null, isNew:true, sale:false,
+    rating:4.7, reviews:165, tagline:'Triathlon & Toc do', img:'img/noosatri16.jpg',
+    desc:'Giay triathlon mang tinh bieu tuong voi thiet ke day mau sac. FF BLAST PLUS ECO mang lai do dan hoi va nhe, than giay mesh thoang khi kho nhanh ly tuong cho chuyen tiep T2.',
+    colors:[{n:'Huddle Yellow',h:'#d4c84a',g:'linear-gradient(135deg,#f8f5d8,#e8d848)'},{n:'Hot Pink',h:'#e84080',g:'linear-gradient(135deg,#fae0ec,#e878a8)'},{n:'Island Blue',h:'#2888c8',g:'linear-gradient(135deg,#d8f0f8,#68b8e0)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,43.5,44], specs:{'Trong luong':'235g','Do chenh':'8mm','Dem':'Trung binh','Loai':'Triathlon'}},
+  { id:14, name:'ASICS METASPEED EDGE+', cat:'Racing', gender:'Unisex', price:6290000, origPrice:null, isNew:true, sale:false,
+    rating:4.8, reviews:74, tagline:'Dua Elite - Buoc ngan', img:'img/metaspeed-edge.jpg',
+    desc:'Danh cho VDV chay sai buoc ngan, tan so cao. Tam carbon cong huong ket hop FF TURBO PLUS toi uu hoa luc day cho tung buoc chay. Thiet ke khi dong hoc giup giam luc can gio.',
+    colors:[{n:'Safety Yellow',h:'#c8b820',g:'linear-gradient(135deg,#f8f5d0,#d8c830)'},{n:'Sunrise Red',h:'#e84040',g:'linear-gradient(135deg,#fce0e0,#e87878)'},{n:'Black',h:'#1a1a28',g:'linear-gradient(135deg,#e0e0e4,#909098)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,43.5,44], specs:{'Trong luong':'195g','Do chenh':'5mm','Dem':'Cao','Loai':'Racing Flat'}},
+  { id:15, name:'ASICS SUPERBLAST 2 Green', cat:'Neutral', gender:'Unisex', price:5050000, origPrice:5690000, isNew:false, sale:true,
+    rating:4.9, reviews:112, tagline:'Nang luong toi da - Illuminate Green', img:'img/superblast-green.jpg',
+    desc:'Phien ban mau Illuminate Green noi bat. Chieu cao stack day nhat dong ASICS voi dem FF TURBO PLUS tra nang luong vuot troi. De ngoai ASICSGRIP bam tot moi dia hinh.',
+    colors:[{n:'Illuminate Green',h:'#40c870',g:'linear-gradient(135deg,#d8f5e4,#78e0a0)'},{n:'Safety Yellow',h:'#d8c828',g:'linear-gradient(135deg,#f8f5d0,#e0d040)'},{n:'White/Lilac',h:'#e8e0f0',g:'linear-gradient(135deg,#f2eef8,#c8b0e0)'}],
+    sizes:[39,39.5,40,40.5,41,41.5,42,42.5,43,44,45], specs:{'Trong luong':'245g','Do chenh':'5mm','Dem':'Toi da','Loai':'Neutral'}},
+];
+
+const CATEGORIES = [
+  {name:'Neutral',label:'Neutral',desc:'Giay chay tu nhien'},
+  {name:'Stability',label:'Stability',desc:'Ho tro on dinh'},
+  {name:'Racing',label:'Racing',desc:'Thi dau & toc do'},
+  {name:'Trail',label:'Trail',desc:'Dia hinh off-road'},
+];
+
+const PRICE_RANGES = [
+  {label:'Tat ca',min:0,max:Infinity},
+  {label:'Duoi 3.000.000d',min:0,max:3000000},
+  {label:'3.000.000d - 4.000.000d',min:3000000,max:4000000},
+  {label:'4.000.000d - 5.000.000d',min:4000000,max:5000000},
+  {label:'Tren 5.000.000d',min:5000000,max:Infinity},
+];
+
+/* ================================================================
+   UTILITIES
+   ================================================================ */
+function formatVND(n) {
+  return n.toLocaleString('vi-VN') + 'd';
+}
+
+function starsHTML(rating) {
+  let s = '';
+  for (let i = 1; i <= 5; i++) s += i <= Math.round(rating) ? '★' : '☆';
+  return s;
+}
+
+/* ================================================================
+   SVG SHOE GENERATOR (detailed realistic)
+   ================================================================ */
+function shoeSVG(mainColor, size = '100%') {
+  return `<svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${size};height:auto;color:${mainColor}">
+    <!-- Ground shadow -->
+    <ellipse cx="155" cy="180" rx="115" ry="8" fill="rgba(0,0,0,0.07)"/>
+
+    <!-- === OUTSOLE (rubber bottom) === -->
+    <path d="M24 160 C16 160 10 155 10 149 L10 145 C10 141 14 139 20 139 L278 128 C284 128 290 131 290 135 L290 146 C290 153 285 160 276 160 Z" fill="#1a1a1a"/>
+    <!-- Outsole tread grooves -->
+    <g stroke="#333" stroke-width="1.2" opacity="0.6">
+      <line x1="55" y1="139" x2="52" y2="160"/><line x1="90" y1="137" x2="88" y2="160"/>
+      <line x1="125" y1="135" x2="124" y2="160"/><line x1="160" y1="133" x2="160" y2="159"/>
+      <line x1="195" y1="131" x2="196" y2="158"/><line x1="230" y1="129" x2="232" y2="157"/>
+      <line x1="260" y1="128" x2="263" y2="156"/>
+    </g>
+
+    <!-- === MIDSOLE (cushioning) === -->
+    <path d="M20 139 C10 139 6 130 8 120 L16 105 L290 88 C294 95 296 108 294 120 L292 128 C290 131 284 133 278 133 L20 139 Z" fill="#f2f2f2" stroke="#e0e0e0" stroke-width="0.5"/>
+    <!-- GEL cushion pod - heel -->
+    <ellipse cx="255" cy="110" rx="24" ry="11" fill="currentColor" opacity="0.18" stroke="currentColor" stroke-opacity="0.25" stroke-width="0.8"/>
+    <text x="248" y="114" font-size="5" font-weight="700" fill="currentColor" opacity="0.3" letter-spacing="0.5">GEL</text>
+    <!-- GEL cushion pod - forefoot -->
+    <ellipse cx="65" cy="126" rx="18" ry="8" fill="currentColor" opacity="0.12"/>
+    <!-- Midsole mid-line -->
+    <path d="M28 132 Q150 120 285 108" stroke="#e0e0e0" stroke-width="0.6" fill="none"/>
+    <!-- FlyteFoam texture dots -->
+    <g fill="currentColor" opacity="0.06">
+      <circle cx="80" cy="118" r="2"/><circle cx="110" cy="114" r="1.5"/><circle cx="140" cy="112" r="2"/>
+      <circle cx="170" cy="108" r="1.5"/><circle cx="200" cy="105" r="2"/><circle cx="230" cy="102" r="1.5"/>
+    </g>
+
+    <!-- === UPPER (main shoe body) === -->
+    <path d="M16 105 C8 90 14 70 30 58 C52 44 90 30 130 24 L185 18 C215 16 242 22 260 35 C276 48 284 65 288 82 L290 88 L16 105 Z" fill="currentColor" opacity="0.82"/>
+
+    <!-- Toe reinforcement overlay -->
+    <path d="M16 105 C8 90 14 70 30 58 C42 48 58 40 76 34 L55 105 Z" fill="rgba(0,0,0,0.07)"/>
+    <!-- Toe bumper -->
+    <path d="M16 105 C8 95 10 82 18 74 C22 70 28 66 34 62 L28 105 Z" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+
+    <!-- Mesh texture (crosshatch pattern) -->
+    <g stroke="rgba(255,255,255,0.06)" stroke-width="0.6" opacity="0.8">
+      <line x1="55" y1="45" x2="95" y2="100"/><line x1="75" y1="38" x2="115" y2="97"/>
+      <line x1="95" y1="33" x2="135" y2="95"/><line x1="115" y1="29" x2="155" y2="93"/>
+      <line x1="135" y1="26" x2="175" y2="92"/><line x1="155" y1="23" x2="195" y2="90"/>
+      <line x1="175" y1="21" x2="215" y2="89"/><line x1="195" y1="20" x2="240" y2="88"/>
+      <line x1="215" y1="20" x2="260" y2="86"/>
+    </g>
+    <g stroke="rgba(255,255,255,0.04)" stroke-width="0.6" opacity="0.8">
+      <line x1="35" y1="90" x2="95" y2="38"/><line x1="55" y1="98" x2="115" y2="32"/>
+      <line x1="75" y1="102" x2="140" y2="28"/><line x1="100" y1="104" x2="165" y2="24"/>
+      <line x1="130" y1="100" x2="200" y2="22"/><line x1="170" y1="96" x2="240" y2="24"/>
+      <line x1="210" y1="92" x2="270" y2="38"/>
+    </g>
+
+    <!-- === ASICS Tiger Stripes (signature 4 stripes) === -->
+    <g fill="rgba(255,255,255,0.3)">
+      <path d="M95 98 L138 52 L143 56 L103 100 Z"/>
+      <path d="M118 95 L160 46 L165 50 L126 97 Z"/>
+      <path d="M140 92 L182 40 L187 44 L148 94 Z"/>
+      <path d="M162 90 L204 36 L209 40 L170 92 Z"/>
+    </g>
+
+    <!-- === HEEL COUNTER (support piece) === -->
+    <path d="M252 32 C266 42 275 58 282 76 L286 86 L290 92 C286 93 280 94 274 94 L270 78 C265 60 256 45 245 36 Z" fill="currentColor" opacity="0.55"/>
+    <!-- Heel counter inner line -->
+    <path d="M256 38 C268 47 276 62 282 80" stroke="rgba(255,255,255,0.12)" stroke-width="0.8" fill="none"/>
+    <!-- Heel pull tab -->
+    <path d="M254 30 L264 25 L268 32 L258 35 Z" fill="rgba(255,255,255,0.25)"/>
+    <!-- ASICS text on heel -->
+    <text x="265" y="68" font-size="7" font-weight="800" fill="rgba(255,255,255,0.35)" letter-spacing="1.2" font-family="Arial,sans-serif" transform="rotate(-8,265,68)">ASICS</text>
+
+    <!-- === COLLAR PADDING (ankle area) === -->
+    <path d="M228 28 C238 24 250 26 258 32 L254 34 C248 30 240 28 232 30 Z" fill="rgba(255,255,255,0.1)"/>
+    <path d="M228 28 C238 24 250 26 258 32" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+    <!-- === TONGUE === -->
+    <path d="M152 24 C154 12 162 4 174 2 C184 0 192 5 195 14 L198 24 C194 26 186 27 180 26 L152 24 Z" fill="currentColor" opacity="0.45"/>
+    <!-- Tongue padding lines -->
+    <path d="M158 22 C160 14 165 8 172 5 C178 3 184 6 186 12" stroke="rgba(255,255,255,0.12)" stroke-width="0.6" fill="none"/>
+    <path d="M162 20 C163 15 167 10 172 8" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" fill="none"/>
+    <!-- ASICS logo on tongue -->
+    <text x="168" y="16" font-size="4.5" font-weight="800" fill="rgba(255,255,255,0.3)" letter-spacing="0.8" font-family="Arial,sans-serif" text-anchor="middle">ASICS</text>
+
+    <!-- === LACING SYSTEM === -->
+    <!-- Lace eyelets -->
+    <g fill="rgba(200,200,200,0.5)" stroke="rgba(255,255,255,0.2)" stroke-width="0.5">
+      <circle cx="118" cy="48" r="2"/><circle cx="148" cy="36" r="2"/>
+      <circle cx="110" cy="55" r="2"/><circle cx="142" cy="42" r="2"/>
+      <circle cx="103" cy="62" r="2"/><circle cx="136" cy="48" r="2"/>
+      <circle cx="96" cy="69" r="2"/><circle cx="130" cy="54" r="2"/>
+    </g>
+    <!-- Laces -->
+    <g stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity="0.55">
+      <line x1="118" y1="48" x2="148" y2="36"/>
+      <line x1="110" y1="55" x2="142" y2="42"/>
+      <line x1="103" y1="62" x2="136" y2="48"/>
+      <line x1="96" y1="69" x2="130" y2="54"/>
+    </g>
+    <!-- Lace bow (top) -->
+    <g stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity="0.4" fill="none">
+      <path d="M148 36 C155 30 160 28 162 32"/>
+      <path d="M148 36 C152 34 158 36 156 40"/>
+    </g>
+
+    <!-- === INNER LINING visible at collar === -->
+    <path d="M195 18 C205 16 218 18 228 24 L226 26 C218 22 208 20 198 22 Z" fill="rgba(255,255,255,0.06)"/>
+
+    <!-- Highlight reflection on upper -->
+    <path d="M60 65 Q100 50 160 42 Q200 38 230 42" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
+/* ================================================================
+   CART (localStorage)
+   ================================================================ */
+function getCart() { try { return JSON.parse(localStorage.getItem('asics_cart')) || []; } catch { return []; } }
+function saveCart(cart) { localStorage.setItem('asics_cart', JSON.stringify(cart)); updateBadge(); }
+function updateBadge() {
+  const cart = getCart(), count = cart.reduce((s, i) => s + i.qty, 0);
+  const badge = document.getElementById('cart-badge');
+  badge.textContent = count; badge.classList.toggle('show', count > 0);
+}
+function addToCart(pid, colorName, size, qty = 1) {
+  const cart = getCart(), prod = PRODUCTS.find(p => p.id === pid);
+  if (!prod) return;
+  const color = prod.colors.find(c => c.n === colorName) || prod.colors[0];
+  const existing = cart.findIndex(i => i.pid === pid && i.color === colorName && i.size === size);
+  if (existing >= 0) { cart[existing].qty += qty; }
+  else { cart.push({ pid, name: prod.name, color: colorName, colorHex: color.h, gradient: color.g, size, price: prod.price, qty, img: prod.img || null }); }
+  saveCart(cart); renderCart(); toast(prod.name + ' da them vao gio', 'success');
+}
+function removeFromCart(idx) { const cart = getCart(); cart.splice(idx, 1); saveCart(cart); renderCart(); }
+function updateQty(idx, delta) { const cart = getCart(); cart[idx].qty = Math.max(1, cart[idx].qty + delta); saveCart(cart); renderCart(); }
+
+/* ================================================================
+   RENDERING
+   ================================================================ */
+function renderProducts(products) {
+  const grid = document.getElementById('products-grid');
+  document.getElementById('products-count').innerHTML = 'Tim thay <strong>' + products.length + '</strong> san pham';
+  if (!products.length) { grid.innerHTML = '<div class="no-results"><p>Khong tim thay san pham phu hop.</p></div>'; return; }
+  grid.innerHTML = products.map(p => {
+    const c0 = p.colors[0];
+    const discount = p.origPrice ? Math.round((1 - p.price / p.origPrice) * 100) : 0;
+    return `<div class="p-card" data-id="${p.id}">
+      <div class="p-card-img" style="background:#fafafa">
+        <div class="p-badge">
+          ${p.sale && discount ? '<span class="p-badge-item sale">-' + discount + '%</span>' : ''}
+          ${p.isNew ? '<span class="p-badge-item new">Moi</span>' : ''}
+        </div>
+        ${p.img ? '<img src="' + p.img + '" alt="' + p.name + '" loading="lazy">' : shoeSVG(c0.h, '75%')}
+        <div class="p-card-actions">
+          <button class="btn-quickview" onclick="event.stopPropagation();openModal(${p.id})">Xem nhanh</button>
+          <button class="btn-addcart" onclick="event.stopPropagation();addToCart(${p.id},'${c0.n}',${p.sizes[Math.floor(p.sizes.length/2)]})">+ Gio hang</button>
+        </div>
+      </div>
+      <div class="p-card-info">
+        <div class="p-card-name">${p.name}</div>
+        <div class="p-card-price">
+          <span class="price-new">${formatVND(p.price)}</span>
+          ${p.origPrice ? '<span class="price-old">' + formatVND(p.origPrice) + '</span>' : ''}
+          ${discount ? '<span class="price-pct">-' + discount + '%</span>' : ''}
+        </div>
+        <div class="p-card-rating"><span class="stars">${starsHTML(p.rating)}</span><span class="review-count">(${p.reviews})</span></div>
+        <div class="p-card-colors">${p.colors.map(c => '<span class="color-dot" style="background:' + c.h + '" title="' + c.n + '"></span>').join('')}</div>
+        <div class="p-card-tag">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/></svg>
+          Chinh hang 100%
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCart() {
+  const cart = getCart(), items = document.getElementById('cart-items'), footer = document.getElementById('cart-footer');
+  if (!cart.length) {
+    items.innerHTML = '<div class="cart-empty"><div class="empty-icon">&#128722;</div><p>Gio hang trong</p></div>';
+    footer.innerHTML = '';
+    return;
+  }
+  items.innerHTML = cart.map((item, i) => `
+    <div class="cart-item">
+      <div class="cart-item-img" style="background:#fafafa">${item.img ? '<img src="' + item.img + '" alt="' + item.name + '">' : shoeSVG(item.colorHex, '100%')}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-meta">${item.color} &middot; Size ${item.size}</div>
+        <div class="cart-item-bottom">
+          <div class="cart-item-qty">
+            <button onclick="updateQty(${i},-1)">&minus;</button>
+            <span>${item.qty}</span>
+            <button onclick="updateQty(${i},1)">+</button>
+          </div>
+          <div class="cart-item-price">${formatVND(item.price * item.qty)}</div>
+        </div>
+      </div>
+      <button class="cart-remove" onclick="removeFromCart(${i})" title="Xoa">&times;</button>
+    </div>`).join('');
+
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const shipping = subtotal >= 3000000 ? 0 : 30000;
+  footer.innerHTML = `
+    <div class="cart-summary">
+      <div class="cart-row"><span>Tam tinh</span><span>${formatVND(subtotal)}</span></div>
+      <div class="cart-row"><span>Van chuyen</span><span>${shipping ? formatVND(shipping) : 'MIEN PHI'}</span></div>
+      <div class="cart-row total"><span>Tong cong</span><span>${formatVND(subtotal + shipping)}</span></div>
+    </div>
+    <button class="cart-checkout" onclick="checkout()">THANH TOAN - ${formatVND(subtotal + shipping)}</button>`;
+}
+
+/* ================================================================
+   PRODUCT MODAL
+   ================================================================ */
+let modalState = { colorIdx: 0, size: null, qty: 1 };
+
+function openModal(pid) {
+  const p = PRODUCTS.find(x => x.id === pid); if (!p) return;
+  modalState = { colorIdx: 0, size: null, qty: 1 };
+  renderModalContent(p);
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('product-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.getElementById('product-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderModalContent(p) {
+  const c = p.colors[modalState.colorIdx];
+  const discount = p.origPrice ? Math.round((1 - p.price / p.origPrice) * 100) : 0;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-img" style="background:#fafafa">${p.img ? '<img src="' + p.img + '" alt="' + p.name + '">' : shoeSVG(c.h, '85%')}</div>
+    <div class="modal-details">
+      <div class="modal-cat">${p.cat} &mdash; ${p.tagline}</div>
+      <h2 class="modal-name">${p.name}</h2>
+      <div class="modal-rating"><span class="stars" style="color:var(--star)">${starsHTML(p.rating)}</span><span class="review-count">${p.rating} (${p.reviews} danh gia)</span></div>
+      <div class="modal-price-row">
+        <span class="modal-price">${formatVND(p.price)}</span>
+        ${p.origPrice ? '<span class="price-old" style="font-size:15px">' + formatVND(p.origPrice) + '</span><span class="price-pct">-' + discount + '%</span>' : ''}
+      </div>
+      <p class="modal-desc">${p.desc}</p>
+      <div class="option-label">Mau sac &mdash; ${c.n}</div>
+      <div class="modal-colors">
+        ${p.colors.map((cl, i) => '<span class="modal-color' + (i === modalState.colorIdx ? ' sel' : '') + '" style="background:' + cl.h + '" title="' + cl.n + '" onclick="changeModalColor(' + p.id + ',' + i + ')"></span>').join('')}
+      </div>
+      <div class="option-label">Size (EU)</div>
+      <div class="size-grid">
+        ${p.sizes.map(s => '<button class="size-btn' + (modalState.size === s ? ' sel' : '') + '" onclick="selectSize(' + p.id + ',' + s + ')">' + s + '</button>').join('')}
+      </div>
+      <div class="qty-row">
+        <div class="option-label" style="margin-bottom:0">So luong</div>
+        <div class="qty-ctrl">
+          <button onclick="changeQty(${p.id},-1)">&minus;</button>
+          <span>${modalState.qty}</span>
+          <button onclick="changeQty(${p.id},1)">+</button>
+        </div>
+      </div>
+      <button class="modal-add" onclick="modalAddToCart(${p.id})" ${!modalState.size ? 'disabled' : ''}>
+        ${modalState.size ? 'THEM VAO GIO - ' + formatVND(p.price * modalState.qty) : 'CHON SIZE'}
+      </button>
+      <div class="modal-specs">
+        ${Object.entries(p.specs).map(([k,v]) => '<div class="spec-row"><span class="spec-k">' + k + '</span><span class="spec-v">' + v + '</span></div>').join('')}
+      </div>
+    </div>`;
+}
+
+function changeModalColor(pid, idx) { modalState.colorIdx = idx; renderModalContent(PRODUCTS.find(p => p.id === pid)); }
+function selectSize(pid, s) { modalState.size = s; renderModalContent(PRODUCTS.find(p => p.id === pid)); }
+function changeQty(pid, d) { modalState.qty = Math.max(1, modalState.qty + d); renderModalContent(PRODUCTS.find(p => p.id === pid)); }
+function modalAddToCart(pid) {
+  if (!modalState.size) return;
+  const p = PRODUCTS.find(x => x.id === pid);
+  addToCart(pid, p.colors[modalState.colorIdx].n, modalState.size, modalState.qty);
+  closeModal();
+}
+
+/* ================================================================
+   FILTERING & SORTING
+   ================================================================ */
+let filters = { cats: [], gender: [], priceIdx: 0, search: '' };
+
+function buildFilters() {
+  const catDiv = document.getElementById('filter-cats');
+  catDiv.innerHTML = CATEGORIES.map(c => {
+    const cnt = PRODUCTS.filter(p => p.cat === c.name).length;
+    return '<label class="filter-check"><input type="checkbox" value="' + c.name + '" onchange="toggleFilter(\'cats\',\'' + c.name + '\')"> ' + c.label + ' <span class="count">' + cnt + '</span></label>';
+  }).join('');
+
+  const gDiv = document.getElementById('filter-gender');
+  ['Unisex','Nam','Nu'].forEach(g => {
+    const gKey = g === 'Nam' ? 'Men' : g === 'Nu' ? 'Women' : 'Unisex';
+    const cnt = PRODUCTS.filter(p => p.gender === (g === 'Unisex' ? 'Unisex' : gKey)).length;
+    gDiv.innerHTML += '<label class="filter-check"><input type="checkbox" value="' + gKey + '" onchange="toggleFilter(\'gender\',\'' + gKey + '\')"> ' + g + ' <span class="count">' + cnt + '</span></label>';
+  });
+
+  const pDiv = document.getElementById('filter-price');
+  pDiv.innerHTML = PRICE_RANGES.map((r, i) => '<label class="price-opt' + (i === 0 ? ' active' : '') + '" onclick="setPrice(' + i + ')"><input type="radio" name="price" ' + (i === 0 ? 'checked' : '') + '> ' + r.label + '</label>').join('');
+}
+
+function toggleFilter(type, val) {
+  const arr = filters[type], idx = arr.indexOf(val);
+  idx >= 0 ? arr.splice(idx, 1) : arr.push(val);
+  applyFilters();
+}
+
+function setPrice(idx) {
+  filters.priceIdx = idx;
+  document.querySelectorAll('.price-opt').forEach((el, i) => { el.classList.toggle('active', i === idx); el.querySelector('input').checked = i === idx; });
+  applyFilters();
+}
+
+function applyFilters() {
+  let list = [...PRODUCTS];
+  if (filters.cats.length) list = list.filter(p => filters.cats.includes(p.cat));
+  if (filters.gender.length) list = list.filter(p => filters.gender.includes(p.gender));
+  const pr = PRICE_RANGES[filters.priceIdx];
+  list = list.filter(p => p.price >= pr.min && p.price < pr.max);
+  if (filters.search) {
+    const q = filters.search.toLowerCase();
+    list = list.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q) || p.tagline.toLowerCase().includes(q));
+  }
+  const sort = document.getElementById('sort-select').value;
+  if (sort === 'price-asc') list.sort((a, b) => a.price - b.price);
+  else if (sort === 'price-desc') list.sort((a, b) => b.price - a.price);
+  else if (sort === 'rating') list.sort((a, b) => b.rating - a.rating);
+  else if (sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name));
+  renderProducts(list);
+}
+
+document.getElementById('products-grid').addEventListener('click', e => {
+  const card = e.target.closest('.p-card');
+  if (!card || e.target.closest('.p-card-actions')) return;
+  openModal(parseInt(card.dataset.id));
+});
+
+document.getElementById('sort-select').addEventListener('change', applyFilters);
+document.getElementById('clear-filters').addEventListener('click', () => {
+  filters = { cats: [], gender: [], priceIdx: 0, search: '' };
+  document.querySelectorAll('.sidebar input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.price-opt').forEach((el, i) => { el.classList.toggle('active', i === 0); el.querySelector('input').checked = i === 0; });
+  document.getElementById('search-input').value = '';
+  applyFilters();
+});
+
+/* ================================================================
+   SEARCH
+   ================================================================ */
+let searchTimer;
+document.getElementById('search-input').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { filters.search = e.target.value; applyFilters(); }, 300);
+});
+
+/* ================================================================
+   CART SIDEBAR
+   ================================================================ */
+function openCart() {
+  document.getElementById('cart-overlay').classList.add('open');
+  document.getElementById('cart-sidebar').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderCart();
+}
+function closeCart() {
+  document.getElementById('cart-overlay').classList.remove('open');
+  document.getElementById('cart-sidebar').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('cart-btn').addEventListener('click', openCart);
+document.getElementById('cart-close').addEventListener('click', closeCart);
+document.getElementById('cart-overlay').addEventListener('click', closeCart);
+
+function checkout() {
+  const cart = getCart();
+  if (!cart.length) return;
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const shipping = subtotal >= 3000000 ? 0 : 30000;
+  const total = subtotal + shipping;
+  const orderNum = 'ASC-' + Date.now().toString(36).toUpperCase();
+  const orders = JSON.parse(localStorage.getItem('asics_orders') || '[]');
+  orders.push({ id: orderNum, items: cart, date: new Date().toISOString(), total });
+  localStorage.setItem('asics_orders', JSON.stringify(orders));
+  saveCart([]);
+  closeCart();
+  renderCart();
+  toast('Don hang ' + orderNum + ' da dat thanh cong!', 'success');
+}
+
+/* ================================================================
+   MODAL CLOSE
+   ================================================================ */
+document.getElementById('modal-overlay').addEventListener('click', closeModal);
+document.getElementById('modal-close').addEventListener('click', closeModal);
+
+/* ================================================================
+   KEYBOARD (ESC)
+   ================================================================ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeCart(); }
+});
+
+/* ================================================================
+   HAMBURGER MENU
+   ================================================================ */
+document.getElementById('hamburger').addEventListener('click', () => {
+  const links = document.getElementById('nav-links');
+  links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+});
+
+/* ================================================================
+   SCROLL TO TOP
+   ================================================================ */
+const scrollBtn = document.getElementById('scroll-top');
+window.addEventListener('scroll', () => {
+  scrollBtn.classList.toggle('show', window.scrollY > 400);
+});
+scrollBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* ================================================================
+   VIEW TOGGLE
+   ================================================================ */
+document.querySelectorAll('.view-btn').forEach((btn, i) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const grid = document.getElementById('products-grid');
+    grid.style.gridTemplateColumns = i === 0 ? 'repeat(4,1fr)' : 'repeat(3,1fr)';
+  });
+});
+
+/* ================================================================
+   NEWSLETTER
+   ================================================================ */
+function handleNewsletter(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const input = document.getElementById('newsletter-email');
+  if (input.value) {
+    input.value = '';
+    toast('Dang ky thanh cong! Cam on ban.', 'success');
+  }
+}
+
+/* ================================================================
+   TOAST
+   ================================================================ */
+function toast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = '<span class="toast-icon">' + (type === 'success' ? '✓' : '!') + '</span> ' + msg;
+  document.getElementById('toast-container').appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+(function init() {
+  buildFilters();
+  applyFilters();
+  updateBadge();
+  renderCart();
+})();
+</script>
 </body>
 </html>
