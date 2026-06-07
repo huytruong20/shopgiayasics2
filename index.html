@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASICS GEL-NIMBUS // ANATOMY EXPLORER</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            overflow: hidden;
+            background: #0a0a0f;
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            color: #c8c8d8;
+            -webkit-font-smoothing: antialiased;
+        }
+        #viewport {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; display: block;
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        #loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9999; background: #0a0a0f;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease;
+        }
+        #loading.hidden { opacity: 0; pointer-events: none; }
+        #loading::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+            pointer-events: none;
+        }
+        #loading .brand { font-family: 'Orbitron', monospace; font-size: 2.2rem; font-weight: 700;
+            color: #00d4ff; letter-spacing: 10px;
+            text-shadow: 0 0 20px rgba(0,212,255,0.4), 0 0 60px rgba(0,212,255,0.1);
+        }
+        #loading .tagline { font-family: 'Rajdhani', sans-serif; font-size: 0.8rem; letter-spacing: 8px;
+            color: #555570; margin-top: 8px; text-transform: uppercase;
+        }
+        .load-bar { width: 220px; height: 2px; background: #151520; margin-top: 30px; border-radius: 1px; overflow: hidden; }
+        .load-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #00d4ff, #7c3aed); transition: width 0.6s ease; }
+        .load-status { font-size: 0.7rem; letter-spacing: 4px; color: #444460; margin-top: 14px;
+            animation: pulse 1.5s ease infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+        /* ===== HEADER ===== */
+        #header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 56px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px; z-index: 100;
+            background: linear-gradient(to bottom, rgba(10,10,15,0.85) 0%, transparent 100%);
+        }
+        .hdr-brand .hdr-title {
+            font-family: 'Orbitron', monospace; font-size: 0.95rem; font-weight: 600;
+            letter-spacing: 4px; color: #00d4ff;
+            text-shadow: 0 0 12px rgba(0,212,255,0.25);
+        }
+        .hdr-brand .hdr-sub {
+            font-size: 0.65rem; letter-spacing: 5px; color: #555570; margin-top: 1px;
+        }
+        .controls { display: flex; gap: 8px; }
+        .btn {
+            font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            padding: 5px 14px; background: transparent;
+            border: 1px solid rgba(0,212,255,0.2); color: #778; cursor: pointer;
+            transition: all 0.3s ease; outline: none;
+        }
+        .btn:hover { border-color: rgba(0,212,255,0.6); color: #00d4ff;
+            background: rgba(0,212,255,0.05); box-shadow: 0 0 12px rgba(0,212,255,0.1);
+        }
+        .btn.active { border-color: #00d4ff; color: #00d4ff;
+            background: rgba(0,212,255,0.08);
+            box-shadow: 0 0 15px rgba(0,212,255,0.12), inset 0 0 15px rgba(0,212,255,0.03);
+        }
+
+        /* ===== INFO PANEL ===== */
+        #info-panel {
+            position: fixed; left: -370px; top: 76px; width: 330px;
+            background: rgba(8,8,14,0.92); border: 1px solid rgba(0,212,255,0.1);
+            padding: 24px 22px; z-index: 100;
+            transition: left 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+        #info-panel.visible { left: 22px; }
+        #info-panel::before {
+            content: ''; position: absolute; top: -1px; left: -1px;
+            width: 18px; height: 18px;
+            border-top: 2px solid #00d4ff; border-left: 2px solid #00d4ff;
+        }
+        #info-panel::after {
+            content: ''; position: absolute; bottom: -1px; right: -1px;
+            width: 18px; height: 18px;
+            border-bottom: 2px solid #00d4ff; border-right: 2px solid #00d4ff;
+        }
+        .panel-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .panel-num { font-family: 'Orbitron', monospace; font-size: 0.65rem; color: #7c3aed;
+            letter-spacing: 3px; opacity: 0.8;
+        }
+        .panel-close { background: none; border: none; color: #555; font-size: 1rem;
+            cursor: pointer; padding: 2px 6px; transition: color 0.3s;
+        }
+        .panel-close:hover { color: #00d4ff; }
+        .p-name { font-family: 'Orbitron', monospace; font-size: 0.9rem; font-weight: 600;
+            color: #00d4ff; letter-spacing: 2px; line-height: 1.3;
+            text-shadow: 0 0 8px rgba(0,212,255,0.2);
+        }
+        .p-sub { font-size: 0.78rem; color: #7c3aed; letter-spacing: 1.5px; margin-top: 3px; font-weight: 500; }
+        .p-line { width: 100%; height: 1px; background: linear-gradient(90deg, rgba(0,212,255,0.2), transparent);
+            margin: 14px 0;
+        }
+        .p-desc { font-size: 0.82rem; line-height: 1.55; color: #8888a0; }
+        .p-specs { list-style: none; margin-top: 14px; }
+        .p-specs li {
+            font-size: 0.78rem; color: #9999b0; padding: 3px 0 3px 16px;
+            position: relative; letter-spacing: 0.5px;
+        }
+        .p-specs li::before { content: '▸'; position: absolute; left: 0; color: #00d4ff; font-size: 0.7rem; }
+
+        /* ===== COMPONENT SELECTOR ===== */
+        #comp-selector {
+            position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 6px; z-index: 100;
+        }
+        .comp-card {
+            width: 88px; padding: 10px 6px 8px;
+            background: rgba(8,8,14,0.65); border: 1px solid rgba(0,212,255,0.08);
+            cursor: pointer; text-align: center; transition: all 0.3s ease;
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        }
+        .comp-card:hover { border-color: rgba(0,212,255,0.35); background: rgba(0,212,255,0.04); }
+        .comp-card.active { border-color: #00d4ff; background: rgba(0,212,255,0.08);
+            box-shadow: 0 0 12px rgba(0,212,255,0.1);
+        }
+        .cc-num { font-family: 'Orbitron', monospace; font-size: 0.6rem; color: #7c3aed; letter-spacing: 2px; }
+        .cc-name { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase;
+            color: #666680; margin-top: 4px; font-weight: 600;
+        }
+        .comp-card.active .cc-name { color: #00d4ff; }
+
+        /* ===== 3D LABELS ===== */
+        .lbl {
+            position: fixed; pointer-events: none; z-index: 50;
+            transition: opacity 0.35s ease;
+            transform: translate(0, -50%);
+        }
+        .lbl-inner {
+            font-family: 'Orbitron', monospace; font-size: 0.55rem; font-weight: 500;
+            letter-spacing: 2.5px; color: #00d4ff;
+            background: rgba(8,8,14,0.75); padding: 3px 10px;
+            border: 1px solid rgba(0,212,255,0.25);
+            white-space: nowrap;
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+        }
+
+        /* ===== SVG ANNOTATIONS ===== */
+        #anno-svg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 45; overflow: visible;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            #comp-selector { gap: 4px; }
+            .comp-card { width: 56px; padding: 8px 3px 6px; }
+            .cc-num { font-size: 0.5rem; }
+            .cc-name { font-size: 0.5rem; }
+            #info-panel { width: 280px; }
+            #info-panel.visible { left: 10px; }
+            .controls { gap: 4px; }
+            .btn { padding: 4px 8px; font-size: 0.6rem; letter-spacing: 1px; }
+        }
+        @media (max-width: 480px) {
+            .hdr-brand .hdr-title { font-size: 0.7rem; letter-spacing: 2px; }
+            .hdr-brand .hdr-sub { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading -->
+    <div id="loading">
+        <div class="brand">ASICS</div>
+        <div class="tagline">GEL-NIMBUS // ANATOMY</div>
+        <div class="load-bar"><div class="load-fill" id="load-fill"></div></div>
+        <div class="load-status" id="load-status">INITIALIZING MODULES...</div>
+    </div>
+
+    <!-- Header -->
+    <header id="header">
+        <div class="hdr-brand">
+            <div class="hdr-title">ASICS GEL-NIMBUS</div>
+            <div class="hdr-sub">ANATOMY // EXPLODED VIEW</div>
+        </div>
+        <div class="controls">
+            <button class="btn" id="btn-explode">EXPLODE</button>
+            <button class="btn active" id="btn-rotate">AUTO ROTATE</button>
+            <button class="btn" id="btn-reset">RESET VIEW</button>
+        </div>
+    </header>
+
+    <!-- Info Panel -->
+    <aside id="info-panel">
+        <div class="panel-top">
+            <span class="panel-num" id="pn-num">01</span>
+            <button class="panel-close" id="pn-close">&times;</button>
+        </div>
+        <div class="p-name" id="pn-name"></div>
+        <div class="p-sub" id="pn-sub"></div>
+        <div class="p-line"></div>
+        <p class="p-desc" id="pn-desc"></p>
+        <ul class="p-specs" id="pn-specs"></ul>
+    </aside>
+
+    <!-- Component Selector -->
+    <nav id="comp-selector"></nav>
+
+    <!-- SVG Annotation Overlay -->
+    <svg id="anno-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+    <!-- 3D Label Container -->
+    <div id="labels"></div>
+
+    <!-- Canvas -->
+    <canvas id="viewport"></canvas>
+
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <!-- GSAP -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        const { gsap } = window;
+
+        /* ================================================================
+           COMPONENT DATA
+           ================================================================ */
+        const PARTS = [
+            {
+                id: 'outsole', num: '01', short: 'OUTSOLE',
+                name: 'AHAR+ RUBBER OUTSOLE',
+                sub: 'High Abrasion Rubber Plus',
+                desc: 'ASICS High Abrasion Rubber Plus compound strategically placed in critical zones for exceptional durability and multi-surface traction. Forefoot flex grooves promote natural foot articulation and efficient toe-off.',
+                specs: ['Material: AHAR+ Compound','Durability: +50% vs standard rubber','Multi-directional flex grooves','Wet-surface traction pattern'],
+                assembled: 0, exploded: -5,
+            },
+            {
+                id: 'midsole', num: '02', short: 'MIDSOLE',
+                name: 'FLYTEFOAM MIDSOLE',
+                sub: 'with PureGEL Technology',
+                desc: 'Lightweight FlyteFoam midsole with organic nanofibers delivers responsive cushioning and resilient energy return. Embedded PureGEL inserts at the rearfoot provide exceptionally soft heel landings.',
+                specs: ['Material: FlyteFoam™ Blend','40% lighter than standard EVA','PureGEL™ rearfoot inserts','Organic nanofiber reinforcement'],
+                assembled: 1.2, exploded: 2,
+            },
+            {
+                id: 'sockliner', num: '03', short: 'SOCKLINER',
+                name: 'ORTHOLITE SOCKLINER',
+                sub: 'Removable Comfort Insert',
+                desc: 'Premium OrthoLite sockliner provides lasting step-in comfort with superior moisture management. Removable design accommodates custom orthotics.',
+                specs: ['Material: OrthoLite™ Foam','Moisture-wicking surface','Removable / replaceable','Anti-microbial treatment'],
+                assembled: 4.5, exploded: 8,
+            },
+            {
+                id: 'upper', num: '04', short: 'UPPER',
+                name: 'ENGINEERED MESH UPPER',
+                sub: 'Adaptive Fit Technology',
+                desc: 'Multi-layered engineered knit mesh upper delivers zoned support, breathability, and an adaptive fit. Internal heel counter provides structured rearfoot lockdown.',
+                specs: ['Material: Engineered Knit Mesh','Multi-zone ventilation','Adaptive stretch-fit zones','Reinforced heel counter'],
+                assembled: 5.0, exploded: 14,
+            },
+            {
+                id: 'tongue', num: '05', short: 'TONGUE',
+                name: 'PADDED TONGUE',
+                sub: 'Pressure-Reducing Design',
+                desc: 'Generously padded tongue with soft lining distributes lace pressure evenly across the instep. Internal gusset prevents tongue migration during runs.',
+                specs: ['Material: Padded mesh foam','Gusseted construction','Pressure distribution layer','Moisture-wicking lining'],
+                assembled: 5.0, exploded: 20,
+            },
+            {
+                id: 'laces', num: '06', short: 'LACES',
+                name: 'LACING SYSTEM',
+                sub: 'Precision Fit',
+                desc: 'Flat woven lacing system with reinforced eyelet channels provides secure, micro-adjustable fit. Low-profile design minimizes pressure hot spots.',
+                specs: ['Material: Woven polyester','Flat profile laces','Reinforced eyelet channels','Variable tension zones'],
+                assembled: 5.0, exploded: 25,
+            },
+        ];
+
+        /* ================================================================
+           RENDERER / SCENE / CAMERA
+           ================================================================ */
+        const canvas = document.getElementById('viewport');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x0a0a0f);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
+        camera.position.set(24, 14, 24);
+
+        /* ================================================================
+           CONTROLS
+           ================================================================ */
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.07;
+        controls.minDistance = 18;
+        controls.maxDistance = 60;
+        controls.maxPolarAngle = Math.PI * 0.82;
+        controls.target.set(0, 5, 0);
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.update();
+
+        let autoRotateWanted = true;
+        let idleTimer = null;
+        controls.addEventListener('start', () => {
+            controls.autoRotate = false;
+            clearTimeout(idleTimer);
+        });
+        controls.addEventListener('end', () => {
+            idleTimer = setTimeout(() => { if (autoRotateWanted) controls.autoRotate = true; }, 3000);
+        });
+
+        /* ================================================================
+           POST-PROCESSING
+           ================================================================ */
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+        composer.addPass(new UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight), 0.55, 0.4, 0.82));
+        composer.addPass(new OutputPass());
+
+        /* ================================================================
+           LIGHTING
+           ================================================================ */
+        scene.add(new THREE.AmbientLight(0x111125, 0.35));
+
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.15);
+        keyLight.position.set(10, 16, 8);
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0x4a8ad9, 0.35);
+        fillLight.position.set(-12, -4, -6);
+        scene.add(fillLight);
+
+        const rimLight = new THREE.DirectionalLight(0x9b59b6, 0.55);
+        rimLight.position.set(0, 10, -16);
+        scene.add(rimLight);
+
+        const spot = new THREE.SpotLight(0x00d4ff, 0.7, 65, 0.45, 0.85);
+        spot.position.set(0, 28, 0);
+        scene.add(spot);
+
+        /* ================================================================
+           ENVIRONMENT — Grid + Particles
+           ================================================================ */
+        const grid = new THREE.GridHelper(55, 55, 0x00d4ff, 0x0a0a18);
+        grid.material.transparent = true;
+        grid.material.opacity = 0.1;
+        grid.position.y = -0.8;
+        scene.add(grid);
+
+        const PC = 350;
+        const pGeo = new THREE.BufferGeometry();
+        const pPos = new Float32Array(PC * 3);
+        const pSpd = new Float32Array(PC);
+        for (let i = 0; i < PC; i++) {
+            pPos[i*3]   = (Math.random()-0.5)*65;
+            pPos[i*3+1] = Math.random()*45;
+            pPos[i*3+2] = (Math.random()-0.5)*65;
+            pSpd[i] = 0.008 + Math.random()*0.025;
+        }
+        pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+        const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({
+            color: 0x00d4ff, size: 0.07, transparent: true, opacity: 0.3,
+            blending: THREE.AdditiveBlending, depthWrite: false,
+        }));
+        scene.add(particles);
+
+        /* ================================================================
+           SHARED FOOT SHAPE
+           ================================================================ */
+        function footShape(s = 1) {
+            const sh = new THREE.Shape();
+            sh.moveTo(0, -12*s);
+            sh.bezierCurveTo( 3.0*s,-12.0*s,  4.5*s,-10.5*s,  4.8*s, -8.0*s);
+            sh.bezierCurveTo( 4.5*s, -4.0*s,  4.2*s, -1.0*s,  4.5*s,  2.0*s);
+            sh.bezierCurveTo( 5.0*s,  5.0*s,  5.3*s,  8.0*s,  4.8*s, 10.0*s);
+            sh.bezierCurveTo( 4.2*s, 12.0*s,  2.5*s, 13.0*s,  0.0,   13.5*s);
+            sh.bezierCurveTo(-2.5*s, 13.0*s, -4.2*s, 12.0*s, -4.8*s, 10.0*s);
+            sh.bezierCurveTo(-5.3*s,  8.0*s, -5.0*s,  5.0*s, -4.5*s,  2.0*s);
+            sh.bezierCurveTo(-4.2*s, -1.0*s, -3.5*s, -4.0*s, -3.2*s, -8.0*s);
+            sh.bezierCurveTo(-3.5*s,-10.5*s, -3.0*s,-12.0*s,  0.0,  -12.0*s);
+            return sh;
+        }
+
+        /* ================================================================
+           GEOMETRY BUILDERS
+           ================================================================ */
+
+        /* -- OUTSOLE --------------------------------------------------- */
+        function buildOutsole() {
+            const g = new THREE.Group();
+            const geo = new THREE.ExtrudeGeometry(footShape(1.0), {
+                depth: 1.0, bevelEnabled: true,
+                bevelThickness: 0.15, bevelSize: 0.15, bevelSegments: 2,
+            });
+            geo.rotateX(-Math.PI / 2);
+
+            const tC = document.createElement('canvas');
+            tC.width = tC.height = 256;
+            const ctx = tC.getContext('2d');
+            ctx.fillStyle = '#181830';
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.strokeStyle = '#222244';
+            ctx.lineWidth = 0.8;
+            for (let i = 0; i < 256; i += 8) {
+                ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,256); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(256,i); ctx.stroke();
+            }
+            const tex = new THREE.CanvasTexture(tC);
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(4, 4);
+
+            const mat = new THREE.MeshPhysicalMaterial({
+                color: 0x181830, roughness: 0.72, metalness: 0.08,
+                clearcoat: 0.35, clearcoatRoughness: 0.4,
+                bumpMap: tex, bumpScale: 0.25,
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.userData = { selectable: true, componentId: 'outsole' };
+            g.add(mesh);
+
+            const gMat = new THREE.MeshStandardMaterial({ color: 0x08080f, roughness: 0.95 });
+            for (let i = 0; i < 5; i++) {
+                const gGeo = new THREE.BoxGeometry(8.5, 0.12, 0.35);
+                const gM = new THREE.Mesh(gGeo, gMat);
+                gM.position.set(0, 0.08, -(3.5 + i * 2.1));
+                g.add(gM);
+            }
+            return g;
+        }
+
+        /* -- MIDSOLE --------------------------------------------------- */
+        function buildMidsole() {
+            const g = new THREE.Group();
+            const geo = new THREE.ExtrudeGeometry(footShape(0.96), {
+                depth: 3.0, bevelEnabled: true,
+                bevelThickness: 0.4, bevelSize: 0.4, bevelSegments: 3,
+            });
+            geo.rotateX(-Math.PI / 2);
+
+            const pos = geo.getAttribute('position');
+            for (let i = 0; i < pos.count; i++) {
+                let y = pos.getY(i), z = pos.getZ(i);
+                if (y > 0.8) {
+                    const hf = Math.max(0, z) / 12;
+                    y += Math.pow(hf, 1.3) * 1.4;
+                }
+                pos.setY(i, y);
+            }
+            geo.computeVertexNormals();
+
+            const mat = new THREE.MeshPhysicalMaterial({
+                color: 0xe6e6f2, roughness: 0.38, metalness: 0.0, clearcoat: 0.08,
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.userData = { selectable: true, componentId: 'midsole' };
+            g.add(mesh);
+
+            const gelMat = new THREE.MeshPhysicalMaterial({
+                color: 0x7c3aed, roughness: 0.12, metalness: 0.0,
+                transparent: true, opacity: 0.7,
+                emissive: 0x7c3aed, emissiveIntensity: 0.35,
+            });
+            const gelGeo = new THREE.SphereGeometry(1, 22, 14);
+            [[-1.3, 1.6, 7.5], [1.3, 1.6, 7.5]].forEach(p => {
+                const gm = new THREE.Mesh(gelGeo.clone(), gelMat);
+                gm.scale.set(2.0, 0.55, 2.0);
+                gm.position.set(...p);
+                g.add(gm);
+            });
+            return g;
+        }
+
+        /* -- SOCKLINER ------------------------------------------------- */
+        function buildSockliner() {
+            const g = new THREE.Group();
+            const geo = new THREE.ExtrudeGeometry(footShape(0.88), {
+                depth: 0.45, bevelEnabled: true,
+                bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 1,
+            });
+            geo.rotateX(-Math.PI / 2);
+
+            const pos = geo.getAttribute('position');
+            for (let i = 0; i < pos.count; i++) {
+                let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+                if (y > 0.25) {
+                    const d = Math.sqrt(x*x + z*z) / 14;
+                    y -= (1 - d) * 0.12;
+                }
+                pos.setY(i, y);
+            }
+            geo.computeVertexNormals();
+
+            const mat = new THREE.MeshStandardMaterial({ color: 0x28283e, roughness: 0.92 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.userData = { selectable: true, componentId: 'sockliner' };
+            g.add(mesh);
+            return g;
+        }
+
+        /* -- UPPER ----------------------------------------------------- */
+        function buildUpper() {
+            const g = new THREE.Group();
+            const geo = new THREE.SphereGeometry(1, 36, 24, 0, Math.PI*2, 0, Math.PI*0.52);
+            const pos = geo.getAttribute('position');
+
+            for (let i = 0; i < pos.count; i++) {
+                let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+                x *= 4.9;  z *= 13.2;
+                y = Math.max(y, 0) * 7.2;
+
+                const zN = (z + 13.2) / 26.4;
+                if (zN < 0.15) x *= 0.78 + (zN / 0.15) * 0.22;
+                if (zN > 0.58) {
+                    const t = (zN - 0.58) / 0.42;
+                    y *= 1 - Math.pow(t, 1.4) * 0.6;
+                    x *= 1 - t * 0.38;
+                }
+                if (zN > 0.3 && zN < 0.58) x *= 1.05;
+
+                pos.setXYZ(i, x, y, z);
+            }
+            geo.computeVertexNormals();
+
+            const mat = new THREE.MeshPhysicalMaterial({
+                color: 0x18183a, roughness: 0.55, metalness: 0.12, clearcoat: 0.18,
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.userData = { selectable: true, componentId: 'upper' };
+            g.add(mesh);
+
+            const wMat = new THREE.MeshBasicMaterial({
+                color: 0x00d4ff, wireframe: true, transparent: true, opacity: 0.09,
+            });
+            g.add(new THREE.Mesh(geo.clone(), wMat));
+            return g;
+        }
+
+        /* -- TONGUE ---------------------------------------------------- */
+        function buildTongue() {
+            const g = new THREE.Group();
+            const geo = new THREE.PlaneGeometry(3.2, 7.5, 10, 14);
+            const pos = geo.getAttribute('position');
+
+            for (let i = 0; i < pos.count; i++) {
+                let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+                const yN = (y + 3.75) / 7.5;
+                z = -Math.sin(yN * Math.PI * 0.28) * 1.3 - Math.cos((x / 3.2) * Math.PI) * 0.25;
+                x *= 0.82 + yN * 0.18;
+                pos.setXYZ(i, x, y, z);
+            }
+            geo.computeVertexNormals();
+
+            const mat = new THREE.MeshStandardMaterial({
+                color: 0x222248, roughness: 0.88, metalness: 0.04, side: THREE.DoubleSide,
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.rotation.x = -Math.PI / 2 - 0.12;
+            mesh.position.set(0, 6.8, -2.5);
+            mesh.userData = { selectable: true, componentId: 'tongue' };
+            g.add(mesh);
+            return g;
+        }
+
+        /* -- LACES ----------------------------------------------------- */
+        function buildLaces() {
+            const g = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({
+                color: 0xf5f5ff, roughness: 0.55, metalness: 0.08,
+                emissive: 0x00d4ff, emissiveIntensity: 0.12,
+            });
+
+            const bars = [
+                { z: -5.5, y: 6.5, w: 3.1 },
+                { z: -3.2, y: 6.9, w: 2.9 },
+                { z: -0.8, y: 7.1, w: 2.7 },
+                { z:  1.5, y: 7.2, w: 2.4 },
+                { z:  3.8, y: 7.2, w: 2.1 },
+            ];
+            bars.forEach(b => {
+                const curve = new THREE.CatmullRomCurve3([
+                    new THREE.Vector3(-b.w, b.y, b.z),
+                    new THREE.Vector3(0,     b.y + 0.5, b.z),
+                    new THREE.Vector3( b.w,  b.y, b.z),
+                ]);
+                const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 14, 0.065, 6, false), mat);
+                tube.userData = { selectable: true, componentId: 'laces' };
+                g.add(tube);
+            });
+            return g;
+        }
+
+        /* ================================================================
+           ASSEMBLE SHOE
+           ================================================================ */
+        const shoeGroup = new THREE.Group();
+        const groups = {};
+        const builders = { outsole: buildOutsole, midsole: buildMidsole, sockliner: buildSockliner,
+                           upper: buildUpper, tongue: buildTongue, laces: buildLaces };
+
+        PARTS.forEach(p => {
+            const grp = builders[p.id]();
+            grp.position.y = p.assembled - 12;
+            groups[p.id] = grp;
+            shoeGroup.add(grp);
+        });
+        scene.add(shoeGroup);
+
+        const selectables = [];
+        shoeGroup.traverse(c => { if (c.isMesh && c.userData.selectable) selectables.push(c); });
+
+        /* ================================================================
+           ENTRANCE ANIMATION
+           ================================================================ */
+        PARTS.forEach((p, i) => {
+            gsap.to(groups[p.id].position, {
+                y: p.assembled, duration: 1.6, delay: 0.5 + i * 0.12, ease: 'power3.out',
+            });
+        });
+
+        /* ================================================================
+           EXPLODE / ASSEMBLE
+           ================================================================ */
+        let isExploded = false;
+        const explodeTL = gsap.timeline({ paused: true });
+        PARTS.forEach((p, i) => {
+            explodeTL.to(groups[p.id].position, {
+                y: p.exploded, duration: 1.3, ease: 'power2.inOut',
+            }, i * 0.07);
+        });
+        explodeTL.to(controls.target, { y: 10, duration: 1.3, ease: 'power2.inOut' }, 0);
+
+        function toggleExplode() {
+            isExploded = !isExploded;
+            if (isExploded) {
+                explodeTL.play();
+                document.getElementById('btn-explode').textContent = 'ASSEMBLE';
+                document.getElementById('btn-explode').classList.add('active');
+                showLabels();
+            } else {
+                explodeTL.reverse();
+                document.getElementById('btn-explode').textContent = 'EXPLODE';
+                document.getElementById('btn-explode').classList.remove('active');
+                hideLabels();
+            }
+        }
+
+        /* ================================================================
+           RAYCASTING & INTERACTION
+           ================================================================ */
+        const ray = new THREE.Raycaster();
+        const ptr = new THREE.Vector2(-9, -9);
+        let hovId = null, selId = null;
+
+        canvas.addEventListener('pointermove', e => {
+            ptr.x = (e.clientX / window.innerWidth) * 2 - 1;
+            ptr.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+        canvas.addEventListener('click', e => {
+            if (e.target.closest('#header, #info-panel, #comp-selector')) return;
+            ray.setFromCamera(ptr, camera);
+            const hits = ray.intersectObjects(selectables);
+            hits.length ? selectComp(hits[0].object.userData.componentId) : deselectComp();
+        });
+
+        function updateHover() {
+            ray.setFromCamera(ptr, camera);
+            const hits = ray.intersectObjects(selectables);
+            const newId = hits.length ? hits[0].object.userData.componentId : null;
+            if (newId === hovId) return;
+            if (hovId && hovId !== selId) { setGlow(hovId, 0); setScale(hovId, 1); }
+            if (newId && newId !== selId) { setGlow(newId, 0.12); setScale(newId, 1.02); }
+            hovId = newId;
+            canvas.style.cursor = hovId ? 'pointer' : 'default';
+        }
+
+        function selectComp(id) {
+            if (selId) { setGlow(selId, 0); setScale(selId, 1); }
+            selId = id;
+            setGlow(id, 0.22);
+            setScale(id, 1.03);
+            showPanel(PARTS.find(p => p.id === id));
+            document.querySelectorAll('.comp-card').forEach(c =>
+                c.classList.toggle('active', c.dataset.id === id));
+        }
+
+        function deselectComp() {
+            if (selId) { setGlow(selId, 0); setScale(selId, 1); selId = null; }
+            hidePanel();
+            document.querySelectorAll('.comp-card').forEach(c => c.classList.remove('active'));
+        }
+
+        function setGlow(id, intensity) {
+            groups[id].traverse(c => {
+                if (c.isMesh && c.userData.selectable && c.material.emissive) {
+                    c.material.emissive.setHex(intensity > 0 ? 0x00d4ff : 0x000000);
+                    c.material.emissiveIntensity = intensity;
+                }
+            });
+        }
+        function setScale(id, s) {
+            gsap.to(groups[id].scale, { x: s, y: s, z: s, duration: 0.3, ease: 'power2.out' });
+        }
+
+        /* ================================================================
+           LABELS & ANNOTATION LINES
+           ================================================================ */
+        const lblBox = document.getElementById('labels');
+        const svgEl = document.getElementById('anno-svg');
+        const lblEls = {}, annoEls = {};
+        let lblsOn = false;
+
+        PARTS.forEach(p => {
+            const d = document.createElement('div');
+            d.className = 'lbl'; d.style.opacity = '0';
+            d.innerHTML = `<span class="lbl-inner">${p.short}</span>`;
+            lblBox.appendChild(d);
+            lblEls[p.id] = d;
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('stroke', '#00d4ff'); line.setAttribute('stroke-opacity', '0.3');
+            line.setAttribute('stroke-width', '1'); line.setAttribute('stroke-dasharray', '5 3');
+            line.style.opacity = '0';
+            svgEl.appendChild(line);
+
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('r', '2.5'); dot.setAttribute('fill', '#00d4ff');
+            dot.setAttribute('fill-opacity', '0.55'); dot.style.opacity = '0';
+            svgEl.appendChild(dot);
+
+            annoEls[p.id] = { line, dot };
+        });
+
+        function w2s(pos) {
+            const v = pos.clone().project(camera);
+            return { x: (v.x*0.5+0.5)*window.innerWidth, y: (-v.y*0.5+0.5)*window.innerHeight, ok: v.z < 1 };
+        }
+
+        function showLabels() { lblsOn = true; }
+        function hideLabels() {
+            lblsOn = false;
+            Object.values(lblEls).forEach(e => e.style.opacity = '0');
+            Object.values(annoEls).forEach(({line,dot}) => { line.style.opacity='0'; dot.style.opacity='0'; });
+        }
+
+        function updateLabels() {
+            if (!lblsOn) return;
+            PARTS.forEach(p => {
+                const wp = new THREE.Vector3();
+                groups[p.id].getWorldPosition(wp);
+                wp.y += 1.2;
+                const s = w2s(wp);
+                const el = lblEls[p.id], { line, dot } = annoEls[p.id];
+                if (!s.ok || s.x < 0 || s.x > window.innerWidth || s.y < 0 || s.y > window.innerHeight) {
+                    el.style.opacity = '0'; line.style.opacity = '0'; dot.style.opacity = '0';
+                    return;
+                }
+                const lx = s.x + 110, ly = s.y;
+                el.style.left = lx + 'px'; el.style.top = ly + 'px'; el.style.opacity = '1';
+                line.setAttribute('x1', s.x); line.setAttribute('y1', s.y);
+                line.setAttribute('x2', lx - 4); line.setAttribute('y2', ly);
+                line.style.opacity = '1';
+                dot.setAttribute('cx', s.x); dot.setAttribute('cy', s.y); dot.style.opacity = '1';
+            });
+        }
+
+        /* ================================================================
+           UI CONTROLS
+           ================================================================ */
+        function showPanel(p) {
+            document.getElementById('pn-num').textContent = p.num;
+            document.getElementById('pn-name').textContent = p.name;
+            document.getElementById('pn-sub').textContent = p.sub;
+            document.getElementById('pn-desc').textContent = p.desc;
+            const ul = document.getElementById('pn-specs');
+            ul.innerHTML = '';
+            p.specs.forEach(s => { const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); });
+            document.getElementById('info-panel').classList.add('visible');
+        }
+        function hidePanel() { document.getElementById('info-panel').classList.remove('visible'); }
+
+        const selNav = document.getElementById('comp-selector');
+        PARTS.forEach(p => {
+            const d = document.createElement('div');
+            d.className = 'comp-card'; d.dataset.id = p.id;
+            d.innerHTML = `<div class="cc-num">${p.num}</div><div class="cc-name">${p.short}</div>`;
+            d.addEventListener('click', () => selectComp(p.id));
+            selNav.appendChild(d);
+        });
+
+        document.getElementById('btn-explode').addEventListener('click', toggleExplode);
+        document.getElementById('btn-rotate').addEventListener('click', () => {
+            autoRotateWanted = !autoRotateWanted;
+            controls.autoRotate = autoRotateWanted;
+            document.getElementById('btn-rotate').classList.toggle('active', autoRotateWanted);
+        });
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            gsap.to(camera.position, { x: 24, y: 14, z: 24, duration: 1.2, ease: 'power2.inOut' });
+            gsap.to(controls.target, { x: 0, y: isExploded ? 10 : 5, z: 0, duration: 1.2, ease: 'power2.inOut' });
+            deselectComp();
+        });
+        document.getElementById('pn-close').addEventListener('click', deselectComp);
+
+        /* ================================================================
+           RESIZE
+           ================================================================ */
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        /* ================================================================
+           RENDER LOOP
+           ================================================================ */
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            const pp = particles.geometry.getAttribute('position');
+            for (let i = 0; i < PC; i++) {
+                let y = pp.getY(i) + pSpd[i];
+                if (y > 45) y = 0;
+                pp.setY(i, y);
+            }
+            pp.needsUpdate = true;
+
+            updateHover();
+            updateLabels();
+            composer.render();
+        }
+
+        /* ================================================================
+           LOADING SEQUENCE
+           ================================================================ */
+        const lFill = document.getElementById('load-fill');
+        const lStat = document.getElementById('load-status');
+        lFill.style.width = '55%';
+        lStat.textContent = 'BUILDING GEOMETRY...';
+
+        setTimeout(() => {
+            lFill.style.width = '100%';
+            lStat.textContent = 'SYSTEMS ONLINE';
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+                animate();
+            }, 600);
+        }, 900);
+    </script>
+</body>
+</html>
